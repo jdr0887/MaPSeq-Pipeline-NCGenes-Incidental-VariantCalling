@@ -1,0 +1,2 @@
+target
+${rootArtifactId}-workflow/src/main/resources/edu/unc/mapseq/workflow/${mapseqSlashPackageName}/workflow.properties

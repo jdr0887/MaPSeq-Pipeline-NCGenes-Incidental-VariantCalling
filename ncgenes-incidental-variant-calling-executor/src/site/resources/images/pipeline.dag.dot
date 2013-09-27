@@ -1,0 +1,8 @@
+digraph G {
+  EchoCLI_1 [ label="EchoCLI_1" ];
+  EchoCLI_2 [ label="EchoCLI_2" ];
+  CatCLI_3 [ label="CatCLI_3" ];
+  EchoCLI_1 -> EchoCLI_2;
+  EchoCLI_1 -> CatCLI_3;
+  EchoCLI_2 -> CatCLI_3;
+}

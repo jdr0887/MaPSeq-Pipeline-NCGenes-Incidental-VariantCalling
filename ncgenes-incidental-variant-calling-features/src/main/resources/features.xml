@@ -1,0 +1,15 @@
+<features name="mapseq-pipeline-ncgenes-incidental-variant-calling-${project.version}">
+
+  <feature name="mapseq-pipeline-ncgenes-incidental-variant-calling" version="${project.version}" resolver="(obr)">
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling/ncgenes-incidental-variant-calling-workflow/${project.version}</bundle>
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling/ncgenes-incidental-variant-calling-commands/${project.version}</bundle>
+    <bundle start-level="100">mvn:edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling/ncgenes-incidental-variant-calling-executor/${project.version}</bundle>
+    <bundle start-level="100">mvn:edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling/ncgenes-incidental-variant-calling-messaging/${project.version}</bundle>
+  </feature>
+
+</features>
+
+
+
+
+
