@@ -20,7 +20,6 @@ import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.pipeline.AbstractPipeline;
 import edu.unc.mapseq.pipeline.PipelineException;
-import edu.unc.mapseq.pipeline.PipelineJobFactory;
 import edu.unc.mapseq.pipeline.PipelineUtil;
 
 public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
