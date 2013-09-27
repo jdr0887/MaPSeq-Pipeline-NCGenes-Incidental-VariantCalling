@@ -24,11 +24,10 @@ public class MessagingTest {
             Destination destination = session.createQueue("queue/ncgenes.incidental.variantcalling");
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-
-            String format = "{\"account_name\":\"%s\",\"entities\":[{\"entity_type\":\"WorkflowRun\",\"name\":\"jdr-test-%d\"}]}";
-            for (int i = 0; i < 10; ++i) {
-                producer.send(session.createTextMessage(String.format(format, System.getProperty("user.name"), i)));
-            }
+            String format = "{\"account_name\":\"%s\",\"entities\":[{\"entity_type\":\"HTSFSample\",\"guid\":\"%d\"},{\"entity_type\":\"WorkflowRun\",\"name\":\"test-%d\"}]}";
+            //replace 123123 with something valid
+            producer.send(session.createTextMessage(String.format(format, System.getProperty("user.name"), 123123,
+                    123123)));
         } catch (JMSException e) {
             e.printStackTrace();
         } finally {
