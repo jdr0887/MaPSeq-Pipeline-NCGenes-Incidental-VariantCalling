@@ -1,2 +1,2 @@
 target
-${rootArtifactId}-workflow/src/main/resources/edu/unc/mapseq/workflow/${mapseqSlashPackageName}/workflow.properties
+ncgenes-incidental-variant-calling-workflow/src/main/resources/edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow.properties
