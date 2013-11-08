@@ -79,7 +79,7 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
             }
 
             SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample, getName());
+            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample, getName(), getVersion());
 
             Integer laneIndex = htsfSample.getLaneIndex();
             logger.debug("laneIndex = {}", laneIndex);
