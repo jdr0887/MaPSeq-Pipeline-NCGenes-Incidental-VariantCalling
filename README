@@ -9,8 +9,6 @@ Build prerequisites
 
   2. maven2 (or maven3) must be installed and M2_HOME must be set 
 
-     For example, 'export M2_HOME=~/m2'
-
 How to build
 
     Run 'mvn clean install'
