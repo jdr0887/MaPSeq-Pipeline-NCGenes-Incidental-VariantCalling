@@ -35,6 +35,7 @@ import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.pipeline.AbstractPipeline;
 import edu.unc.mapseq.pipeline.IRODSBean;
 import edu.unc.mapseq.pipeline.PipelineException;
+import edu.unc.mapseq.pipeline.PipelineJobFactory;
 import edu.unc.mapseq.pipeline.PipelineUtil;
 //import edu.unc.mapseq.workflow.WorkflowUtil;
 
