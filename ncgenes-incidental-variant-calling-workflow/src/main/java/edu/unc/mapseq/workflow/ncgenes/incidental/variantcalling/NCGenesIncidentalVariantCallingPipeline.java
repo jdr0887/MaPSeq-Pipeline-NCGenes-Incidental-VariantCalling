@@ -3,6 +3,7 @@ package edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.config.RunModeType;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
+import edu.unc.mapseq.dao.model.EntityAttribute;
 import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.MimeType;
@@ -54,7 +56,8 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
 
     @Override
     public String getVersion() {
-        ResourceBundle bundle = ResourceBundle.getBundle("edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow");
+        ResourceBundle bundle = ResourceBundle
+                .getBundle("edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow");
         String version = bundle.getString("version");
         return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
     }
@@ -63,9 +66,11 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
     public Graph<CondorJob, CondorJobEdge> createGraph() throws PipelineException {
         logger.info("ENTERING createGraph()");
 
-        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(CondorJobEdge.class);
+        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(
+                CondorJobEdge.class);
 
         int count = 0;
+        // will come over from active mq JSON request
         String version = null;
         String dx = null;
 
@@ -75,7 +80,7 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
         }
 
         Set<HTSFSample> htsfSampleSet = new HashSet<HTSFSample>();
-        
+
         // pick up HTSF Sample ID from SOAP request
         if (getWorkflowPlan().getSequencerRun() != null) {
             logger.info("sequencerRun: {}", getWorkflowPlan().getSequencerRun().toString());
@@ -93,25 +98,41 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
 
         String knownVCF = getPipelineBeanService().getAttributes().get("knownVCF");
         String referenceSequence = getPipelineBeanService().getAttributes().get("referenceSequence");
-        String unifiedGenotyperIntervalList = getPipelineBeanService().getAttributes().get("unifiedGenotyperIntervalList");
-        
+        // String unifiedGenotyperIntervalList =
+        // getPipelineBeanService().getAttributes().get("unifiedGenotyperIntervalList");
+
         for (HTSFSample htsfSample : htsfSampleSet) {
             if ("Undetermined".equals(htsfSample.getBarcode())) {
                 continue;
             }
 
+            Set<EntityAttribute> attributeSet = htsfSample.getAttributes();
+            Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+            while (attributeIter.hasNext()) {
+                EntityAttribute attribute = attributeIter.next();
+                if ("version".equals(attribute.getName())) {
+                    version = attribute.getValue();
+                }
+                if ("dx".equals(attribute.getName())) {
+                    dx = attribute.getValue();
+                }
+            }
+
             SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample, getName());
+            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
+                    getName().replace("IncidentalVariantCalling", ""));
 
             String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%2$s_%1$s.interval_list";
-            
+
             File intervalListByDXAndVersionFile = new File(String.format(format, version, dx));
-            Integer laneIndex = htsfSample.getLaneIndex();
-            //logger.debug("laneIndex = {}", laneIndex);
+
+            String unifiedGenotyperIntervalList = intervalListByDXAndVersionFile.getAbsolutePath();
+            // Integer laneIndex = htsfSample.getLaneIndex();
+            // logger.debug("laneIndex = {}", laneIndex);
             Set<FileData> fileDataSet = htsfSample.getFileDatas();
 
             File bamFile = null;
-            
+
             Workflow ncgenesWorkflow = null;
             try {
                 ncgenesWorkflow = getPipelineBeanService().getMaPSeqDAOBean().getWorkflowDAO().findByName("NCGenes");
@@ -143,29 +164,31 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
 
             // I don't see where this is useful
             /*
-            if (readPairList.size() != 2) {
-                throw new PipelineException("ReadPairList is not 2");
-            }
-
-            File r1FastqFile = readPairList.get(0);
-            String r1FastqRootName = PipelineUtil.getRootFastqName(r1FastqFile.getName());
-
-            File r2FastqFile = readPairList.get(1);
-            String r2FastqRootName = PipelineUtil.getRootFastqName(r2FastqFile.getName());
-
-            String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
-            */
+             * if (readPairList.size() != 2) { throw new PipelineException("ReadPairList is not 2"); }
+             * 
+             * File r1FastqFile = readPairList.get(0); String r1FastqRootName =
+             * PipelineUtil.getRootFastqName(r1FastqFile.getName());
+             * 
+             * File r2FastqFile = readPairList.get(1); String r2FastqRootName =
+             * PipelineUtil.getRootFastqName(r2FastqFile.getName());
+             * 
+             * String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
+             */
 
             try {
 
                 // create graph content here
-                // output variable matches 
+                // output variable matches
                 // new job
-                String gatkTableRecalibrationOut = bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam");
-                CondorJob gatkUnifiedGenotyperJob = PipelineJobFactory.createJob(++count,GATKUnifiedGenotyperCLI.class, getWorkflowPlan(), htsfSample);
+                String gatkTableRecalibrationOut = bamFile.getName().replace(".bam",
+                        ".deduped.realign.fixmate.recal.bam");
+                CondorJob gatkUnifiedGenotyperJob = PipelineJobFactory.createJob(++count,
+                        GATKUnifiedGenotyperCLI.class, getWorkflowPlan(), htsfSample);
                 gatkUnifiedGenotyperJob.setInitialDirectory(outputDirectory);
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.PHONEHOME,GATKPhoneHomeType.NO_ET.toString());
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLINGTYPE,GATKDownsamplingType.NONE.toString());
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.PHONEHOME,
+                        GATKPhoneHomeType.NO_ET.toString());
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLINGTYPE,
+                        GATKDownsamplingType.NONE.toString());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.REFERENCESEQUENCE, referenceSequence);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DBSNP, knownVCF);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.STANDCALLCONF, "30");
@@ -175,12 +198,13 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
                 gatkUnifiedGenotyperJob.addTransferInput(gatkTableRecalibrationOut);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.NUMTHREADS, "4");
                 gatkUnifiedGenotyperJob.setNumberOfProcessors(4);
-                String gatkUnifiedGenotyperOut = gatkTableRecalibrationOut.replace(".bam", ".vcf");
+                String gatkUnifiedGenotyperOut = gatkTableRecalibrationOut.replace(".bam", ".incidental.vcf");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUT, gatkUnifiedGenotyperOut);
                 gatkUnifiedGenotyperJob.addTransferOutput(gatkUnifiedGenotyperOut);
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INTERVALS, unifiedGenotyperIntervalList); // a different list needs to be called in its new workflow
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES"); // this is perfect
-                String gatkUnifiedGenotyperMetrics = gatkTableRecalibrationOut.replace(".bam", ".metrics");
+                // this is a different list that is being called
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INTERVALS, unifiedGenotyperIntervalList);
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES");
+                String gatkUnifiedGenotyperMetrics = gatkTableRecalibrationOut.replace(".bam", ".incidental.metrics");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.METRICS, gatkUnifiedGenotyperMetrics);
                 gatkUnifiedGenotyperJob.addTransferOutput(gatkUnifiedGenotyperMetrics);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLETOCOVERAGE, "250");
@@ -210,7 +234,8 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
         if (getWorkflowPlan().getSequencerRun() != null) {
             logger.info("sequencerRun: {}", getWorkflowPlan().getSequencerRun().toString());
             try {
-                htsfSampleSet.addAll(getPipelineBeanService().getMaPSeqDAOBean().getHTSFSampleDAO().findBySequencerRunId(getWorkflowPlan().getSequencerRun().getId()));
+                htsfSampleSet.addAll(getPipelineBeanService().getMaPSeqDAOBean().getHTSFSampleDAO()
+                        .findBySequencerRunId(getWorkflowPlan().getSequencerRun().getId()));
             } catch (MaPSeqDAOException e) {
                 e.printStackTrace();
             }
@@ -275,11 +300,13 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
             switch (runMode) {
                 case DEV:
                 case STAGING:
-                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/%s/ncgenes/%s", runMode.toString().toLowerCase(), participantId);
+                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/%s/ncgenes/%s", runMode
+                            .toString().toLowerCase(), participantId);
                     break;
                 case PROD:
                 default:
-                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/ncgenes/%s", participantId);
+                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/ncgenes/%s",
+                            participantId);
                     break;
             }
 
@@ -302,19 +329,19 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
                     ncgenesIRODSDirectory, participantId));
             commandInput.setWorkDir(tmpDir);
             commandInputList.add(commandInput);
-            
+
             // set recal out file
             String gatkTableRecalibrationOut = bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam");
 
             List<IRODSBean> files2RegisterToIRODS = new ArrayList<IRODSBean>();
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam",
                     ".variant.vcf"));
-            File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".deduped.realign.fixmate.recal.variant.vcf",
-                    ".incidental.vcf"));
+            File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(
+                    ".vcf", ".incidental.vcf"));
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
 
-            File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
-                    ".incidental.metrics.vcf"));
+            File filterVariant2Output = new File(outputDirectory,gatkTableRecalibrationOut.replace(".vcf",
+                    ".incidental.metrics"));
             files2RegisterToIRODS.add(new IRODSBean(filterVariant2Output, "Metrics", null, null, runMode));
             for (IRODSBean bean : files2RegisterToIRODS) {
 

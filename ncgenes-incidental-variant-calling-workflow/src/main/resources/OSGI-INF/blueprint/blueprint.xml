@@ -7,13 +7,10 @@
       <cm:property name="corePoolSize" value="10" />
       <cm:property name="maxPoolSize" value="10" />
       <cm:property name="siteName" value="Kure" />
-      <cm:property name="reference-sequence"
+      <cm:property name="referenceSequence"
         value="$NCGENESDX_REFERENCES_DIRECTORY/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
-      <cm:property name="known-vcf"
+      <cm:property name="knownVCF"
         value="$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/gatk/bundle/1.2/b37/dbsnp_132.b37.renci.shortid.vcf" />
-      <cm:property name="unifiedGenotyperIntervalList"
-        value="$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v4_capture_region_pm_75.shortid.interval_list" />
-      <cm:property name="outputDirectory" value="$HELLOWORLD_OUTPUT_DIRECTORY" />
     </cm:default-properties>
   </cm:property-placeholder>
 
@@ -51,9 +48,9 @@
     <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
     <property name="attributes">
       <map>
-        <entry key="referenceSequence" value="${reference-sequence}" />
-        <entry key="knownVCF" value="${known-vcf}" />
-        <entry key="unifiedGenotyperIntervalList" value="${unifiedGenotyperIntervalList}" />
+        <entry key="referenceSequence" value="${referenceSequence}" />
+        <entry key="knownVCF" value="${knownVCF}" />
+        <entry key="siteName" value="${siteName}" />
       </map>
     </property>
     <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.workflow.ncgenes.incidental.variantcalling" update-strategy="container-managed" />
