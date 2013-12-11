@@ -6,7 +6,11 @@
     <cm:default-properties>
       <cm:property name="corePoolSize" value="10" />
       <cm:property name="maxPoolSize" value="10" />
-      <cm:property name="outputDirectory" value="$HELLOWORLD_OUTPUT_DIRECTORY" />
+      <cm:property name="siteName" value="Kure" />
+      <cm:property name="referenceSequence"
+        value="$NCGENESDX_REFERENCES_DIRECTORY/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
+      <cm:property name="knownVCF"
+        value="$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/gatk/bundle/1.2/b37/dbsnp_132.b37.renci.shortid.vcf" />
     </cm:default-properties>
   </cm:property-placeholder>
 
@@ -44,7 +48,9 @@
     <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
     <property name="attributes">
       <map>
-        <entry key="outputDirectory" value="${outputDirectory}" />
+        <entry key="referenceSequence" value="${referenceSequence}" />
+        <entry key="knownVCF" value="${knownVCF}" />
+        <entry key="siteName" value="${siteName}" />
       </map>
     </property>
     <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.workflow.ncgenes.incidental.variantcalling" update-strategy="container-managed" />

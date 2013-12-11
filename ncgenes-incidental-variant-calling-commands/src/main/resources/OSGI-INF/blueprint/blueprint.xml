@@ -8,6 +8,13 @@
         <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
       </action>
     </command>
+    <command name="incidental-variant-calling/register-to-irods">
+      <action class="edu.unc.mapseq.commands.ncgenes.dx.RegisterNCGenesDXToIRODSAction">
+        <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
+        <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
+      </action>
+    </command>
+  </command-bundle>
   </command-bundle>
 
   <reference id="maPSeqConfigurationService" interface="edu.unc.mapseq.config.MaPSeqConfigurationService" />
