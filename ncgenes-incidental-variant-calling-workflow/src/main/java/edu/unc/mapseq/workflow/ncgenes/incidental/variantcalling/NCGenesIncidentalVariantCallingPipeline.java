@@ -339,10 +339,6 @@ public class NCGenesIncidentalVariantCallingPipeline extends AbstractPipeline {
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(
                     ".vcf", ".incidental.vcf"));
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
-
-            File filterVariant2Output = new File(outputDirectory,gatkTableRecalibrationOut.replace(".vcf",
-                    ".incidental.metrics"));
-            files2RegisterToIRODS.add(new IRODSBean(filterVariant2Output, "Metrics", null, null, runMode));
             for (IRODSBean bean : files2RegisterToIRODS) {
 
                 commandInput = new CommandInput();
