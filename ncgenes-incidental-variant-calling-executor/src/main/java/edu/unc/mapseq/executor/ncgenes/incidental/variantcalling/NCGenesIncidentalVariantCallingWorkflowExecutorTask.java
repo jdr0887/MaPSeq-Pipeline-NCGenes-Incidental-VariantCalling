@@ -58,17 +58,16 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
                 logger.info("dequeuing {} WorkflowPlans", workflowPlanList.size());
                 for (WorkflowPlan workflowPlan : workflowPlanList) {
 
-                    NCGenesIncidentalVariantCallingWorkflow pipeline = new NCGenesIncidentalVariantCallingWorkflow();
-                    pipeline.setWorkflowBeanService(workflowBeanService);
+                    NCGenesIncidentalVariantCallingWorkflow ncGenesIncidentalVariantCallingWorkflow = new NCGenesIncidentalVariantCallingWorkflow();
 
                     WorkflowRun workflowRun = workflowPlan.getWorkflowRun();
-                    workflowRun.setVersion(pipeline.getVersion());
+                    workflowRun.setVersion(ncGenesIncidentalVariantCallingWorkflow.getVersion());
                     workflowRun.setDequeuedDate(new Date());
                     workflowRunDAO.save(workflowRun);
 
-                    pipeline.setWorkflowPlan(workflowPlan);
-
-                    threadPoolExecutor.submit(new WorkflowExecutor(pipeline));
+                    ncGenesIncidentalVariantCallingWorkflow.setWorkflowBeanService(workflowBeanService);
+                    ncGenesIncidentalVariantCallingWorkflow.setWorkflowPlan(workflowPlan);
+                    threadPoolExecutor.submit(new WorkflowExecutor(ncGenesIncidentalVariantCallingWorkflow));
 
                 }
 
