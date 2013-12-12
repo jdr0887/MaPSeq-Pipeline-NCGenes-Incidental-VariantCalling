@@ -22,14 +22,14 @@ import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.dao.model.WorkflowPlan;
 import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.dao.model.WorkflowRunStatusType;
-import edu.unc.mapseq.pipeline.EntityUtil;
-import edu.unc.mapseq.pipeline.PipelineBeanService;
+import edu.unc.mapseq.workflow.EntityUtil;
+import edu.unc.mapseq.workflow.WorkflowBeanService;
 
 public class NCGenesIncidentalVariantCallingPipelineMessageListener implements MessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingPipelineMessageListener.class);
 
-    private PipelineBeanService pipelineBeanService;
+    private WorkflowBeanService workflowBeanService;
 
     public NCGenesIncidentalVariantCallingPipelineMessageListener() {
         super();
@@ -80,7 +80,7 @@ public class NCGenesIncidentalVariantCallingPipelineMessageListener implements M
             String accountName = jsonMessage.getString("account_name");
 
             try {
-                account = pipelineBeanService.getMaPSeqDAOBean().getAccountDAO().findByName(accountName);
+                account = workflowBeanService.getMaPSeqDAOBean().getAccountDAO().findByName(accountName);
             } catch (MaPSeqDAOException e) {
             }
 
@@ -100,12 +100,12 @@ public class NCGenesIncidentalVariantCallingPipelineMessageListener implements M
                     String entityType = entityJSONObject.getString("entity_type");
 
                     if ("Sequencer run".equals(entityType) || SequencerRun.class.getSimpleName().equals(entityType)) {
-                        sequencerRun = EntityUtil.getSequencerRun(pipelineBeanService.getMaPSeqDAOBean(),
+                        sequencerRun = EntityUtil.getSequencerRun(workflowBeanService.getMaPSeqDAOBean(),
                                 entityJSONObject);
                     }
 
                     if ("HTSF Sample".equals(entityType) || HTSFSample.class.getSimpleName().equals(entityType)) {
-                        HTSFSample htsfSample = EntityUtil.getHTSFSample(pipelineBeanService.getMaPSeqDAOBean(),
+                        HTSFSample htsfSample = EntityUtil.getHTSFSample(workflowBeanService.getMaPSeqDAOBean(),
                                 entityJSONObject);
                         htsfSampleSet.add(htsfSample);
                     }
@@ -113,8 +113,8 @@ public class NCGenesIncidentalVariantCallingPipelineMessageListener implements M
                     if ("Workflow run".equals(entityType) || WorkflowRun.class.getSimpleName().equals(entityType)) {
                         // The pipelineName string should come from the pipeline api, but making the pipeline a service
                         // leads to threading issues, punting for now
-                        workflowRun = EntityUtil.getWorkflowRun(pipelineBeanService.getMaPSeqDAOBean(), "NCGenesIncidentalVariantCalling",
-                                entityJSONObject, account);
+                        workflowRun = EntityUtil.getWorkflowRun(workflowBeanService.getMaPSeqDAOBean(),
+                                "NCGenesIncidentalVariantCalling", entityJSONObject, account);
                     }
 
                 }
@@ -137,7 +137,7 @@ public class NCGenesIncidentalVariantCallingPipelineMessageListener implements M
 
         try {
 
-            Long workflowRunId = pipelineBeanService.getMaPSeqDAOBean().getWorkflowRunDAO().save(workflowRun);
+            Long workflowRunId = workflowBeanService.getMaPSeqDAOBean().getWorkflowRunDAO().save(workflowRun);
             workflowRun.setId(workflowRunId);
 
             WorkflowPlan workflowPlan = new WorkflowPlan();
@@ -148,19 +148,19 @@ public class NCGenesIncidentalVariantCallingPipelineMessageListener implements M
             if (sequencerRun != null) {
                 workflowPlan.setSequencerRun(sequencerRun);
             }
-            pipelineBeanService.getMaPSeqDAOBean().getWorkflowPlanDAO().save(workflowPlan);
+            workflowBeanService.getMaPSeqDAOBean().getWorkflowPlanDAO().save(workflowPlan);
         } catch (MaPSeqDAOException e) {
             e.printStackTrace();
         }
 
     }
 
-    public PipelineBeanService getPipelineBeanService() {
-        return pipelineBeanService;
+    public WorkflowBeanService getWorkflowBeanService() {
+        return workflowBeanService;
     }
 
-    public void setPipelineBeanService(PipelineBeanService pipelineBeanService) {
-        this.pipelineBeanService = pipelineBeanService;
+    public void setWorkflowBeanService(WorkflowBeanService workflowBeanService) {
+        this.workflowBeanService = workflowBeanService;
     }
 
 }
