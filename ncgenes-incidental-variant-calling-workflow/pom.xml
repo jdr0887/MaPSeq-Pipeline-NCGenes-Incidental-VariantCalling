@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>edu.unc.mapseq</groupId>
-      <artifactId>mapseq-pipeline-api</artifactId>
+      <artifactId>mapseq-workflow-api</artifactId>
     </dependency>
     <dependency>
       <groupId>edu.unc.mapseq</groupId>
