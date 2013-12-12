@@ -25,7 +25,7 @@ public class MessagingTest {
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             String format = "{\"account_name\":\"%s\",\"entities\":[{\"entity_type\":\"HTSFSample\",\"guid\":\"%d\"},{\"entity_type\":\"WorkflowRun\",\"name\":\"test-%d\"}]}";
-            //replace 123123 with something valid
+            // replace 123123 with something valid
             producer.send(session.createTextMessage(String.format(format, System.getProperty("user.name"), 123123,
                     123123)));
         } catch (JMSException e) {
