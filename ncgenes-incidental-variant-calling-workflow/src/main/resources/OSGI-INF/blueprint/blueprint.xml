@@ -2,7 +2,8 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0" default-activation="eager">
 
-  <cm:property-placeholder persistent-id="edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling" update-strategy="reload">
+  <cm:property-placeholder persistent-id="edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling"
+    update-strategy="reload">
     <cm:default-properties>
       <cm:property name="corePoolSize" value="10" />
       <cm:property name="maxPoolSize" value="10" />
@@ -41,7 +42,7 @@
     <property name="workflowRunDAO" ref="workflowRunDAO" />
   </bean>
 
-  <bean id="NCGenesIncidentalVariantCallingPipelineBeanService" class="edu.unc.mapseq.pipeline.PipelineBeanServiceImpl">
+  <bean id="NCGenesIncidentalVariantCallingWorkflowBeanService" class="edu.unc.mapseq.workflow.WorkflowBeanServiceImpl">
     <property name="corePoolSize" value="${corePoolSize}" />
     <property name="maxPoolSize" value="${maxPoolSize}" />
     <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
@@ -53,9 +54,10 @@
         <entry key="siteName" value="${siteName}" />
       </map>
     </property>
-    <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.workflow.ncgenes.incidental.variantcalling" update-strategy="container-managed" />
+    <cm:managed-properties persistent-id="edu.unc.mapseq.workflow.workflow.ncgenes.incidental.variantcalling"
+      update-strategy="container-managed" />
   </bean>
 
-  <service ref="NCGenesIncidentalVariantCallingPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService" />
+  <service ref="NCGenesIncidentalVariantCallingWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService" />
 
 </blueprint>

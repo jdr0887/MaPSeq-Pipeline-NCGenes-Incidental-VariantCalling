@@ -8,14 +8,14 @@
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="NCGenesIncidentalVariantCallingPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService"
-    component-name="NCGenesIncidentalVariantCallingPipelineBeanService" />
+  <reference id="NCGenesIncidentalVariantCallingWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
+    component-name="NCGenesIncidentalVariantCallingWorkflowBeanService" />
 
-  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingPipelineExecutorTask">
-    <property name="pipelineBeanService" ref="NCGenesIncidentalVariantCallingPipelineBeanService" />
+  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingWorkflowExecutorTask">
+    <property name="workflowBeanService" ref="NCGenesIncidentalVariantCallingWorkflowBeanService" />
   </bean>
 
-  <bean id="NCGenesIncidentalVariantCallingPipelineExecutorService" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingPipelineExecutorService"
+  <bean id="NCGenesIncidentalVariantCallingWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingWorkflowExecutorService"
     init-method="start" destroy-method="stop" activation="eager">
     <property name="task" ref="task" />
     <property name="period" value="${period}" />
