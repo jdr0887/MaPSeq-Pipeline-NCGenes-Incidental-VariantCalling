@@ -15,7 +15,6 @@
       </action>
     </command>
   </command-bundle>
-  </command-bundle>
 
   <reference id="maPSeqConfigurationService" interface="edu.unc.mapseq.config.MaPSeqConfigurationService" />
   <reference id="accountDAO" interface="edu.unc.mapseq.dao.AccountDAO" />
