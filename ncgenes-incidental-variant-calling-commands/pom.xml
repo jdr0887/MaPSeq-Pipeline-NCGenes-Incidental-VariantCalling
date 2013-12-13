@@ -7,7 +7,7 @@
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes Incidental Variant Calling :: Commands</name>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.unc.mapseq.pipelines.ncgenes-incdidental-variantcalling</groupId>
+  <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variantcalling</groupId>
   <artifactId>ncgenes-incidental-variant-calling-commands</artifactId>
   <version>0.0.18-SNAPSHOT</version>
   <packaging>bundle</packaging>

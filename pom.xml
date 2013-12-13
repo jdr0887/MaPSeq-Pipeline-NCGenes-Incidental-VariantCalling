@@ -24,7 +24,7 @@
   </issueManagement>
   <ciManagement>
     <system>hudson</system>
-    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incdidental-variantcalling</url>
+    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incidental-variantcalling</url>
     <notifiers>
       <notifier>
 	<type>mail</type>
@@ -135,7 +135,7 @@
       	<version>${renci.commons.version}</version>
       </dependency>
       <dependency>
-      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incdidental-variantcalling</groupId>
+      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variantcalling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
       	<version>0.0.18-SNAPSHOT</version>
       </dependency>

@@ -7,13 +7,13 @@
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes Incidental Variant Calling :: Executor</name>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.unc.mapseq.pipelines.ncgenes-incdidental-variantcalling</groupId>
+  <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variantcalling</groupId>
   <artifactId>ncgenes-incidental-variant-calling-executor</artifactId>
   <version>0.0.18-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>edu.unc.mapseq.pipelines.ncgenes-incdidental-variantcalling</groupId>
+      <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variantcalling</groupId>
       <artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
     </dependency>
   </dependencies>

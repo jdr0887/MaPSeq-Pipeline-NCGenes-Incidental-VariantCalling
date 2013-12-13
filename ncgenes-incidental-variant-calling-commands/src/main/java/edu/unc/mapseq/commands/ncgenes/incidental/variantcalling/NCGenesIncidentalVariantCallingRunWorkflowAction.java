@@ -15,7 +15,7 @@ import org.apache.karaf.shell.console.AbstractAction;
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBean;
 
-@Command(scope = "ncgenes-incdidental-variantcalling", name = "run-workflow", description = "Run NCGenes Incidental Variant Calling Workflow")
+@Command(scope = "ncgenes-incidental-variantcalling", name = "run-workflow", description = "Run NCGenes Incidental Variant Calling Workflow")
 public class NCGenesIncidentalVariantCallingRunWorkflowAction extends AbstractAction {
 
     @Argument(index = 0, name = "workflowRunName", description = "WorkflowRun.name", required = true, multiValued = false)
