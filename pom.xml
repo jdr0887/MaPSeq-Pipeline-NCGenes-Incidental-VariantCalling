@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-incidental-variant-calling</artifactId>
-  <version>0.0.18-SNAPSHOT</version>
+  <version>0.0.20-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
     <karaf.version>2.3.3</karaf.version>
@@ -20,11 +20,11 @@
   </properties>
   <issueManagement>
     <system>gForge</system>
-    <url>https://code.renci.org/gf/project/mps_hw_pl/tracker/</url>
+    <url>https://code.renci.org/gf/project/mps_ncg_ivc_pl/tracker/</url>
   </issueManagement>
   <ciManagement>
     <system>hudson</system>
-    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incdidental-variantcalling</url>
+    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incidental-variant-calling</url>
     <notifiers>
       <notifier>
 	<type>mail</type>
@@ -135,9 +135,9 @@
       	<version>${renci.commons.version}</version>
       </dependency>
       <dependency>
-      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incdidental-variantcalling</groupId>
+      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
-      	<version>0.0.18-SNAPSHOT</version>
+      	<version>0.0.20-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
