@@ -20,11 +20,11 @@
   </properties>
   <issueManagement>
     <system>gForge</system>
-    <url>https://code.renci.org/gf/project/mps_hw_pl/tracker/</url>
+    <url>https://code.renci.org/gf/project/mps_ncg_ivc_pl/tracker/</url>
   </issueManagement>
   <ciManagement>
     <system>hudson</system>
-    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incidental-variantcalling</url>
+    <url>https://ci-dev.renci.org/hudson/mapseq-pipeline-ncgenes-incidental-variant-calling</url>
     <notifiers>
       <notifier>
 	<type>mail</type>
@@ -135,7 +135,7 @@
       	<version>${renci.commons.version}</version>
       </dependency>
       <dependency>
-      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variantcalling</groupId>
+      	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
       	<version>0.0.19-SNAPSHOT</version>
       </dependency>
