@@ -2,7 +2,6 @@ package edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -76,12 +75,19 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
         Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
         logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
 
+        String siteName = getWorkflowBeanService().getAttributes().get("siteName");
         String knownVCF = getWorkflowBeanService().getAttributes().get("knownVCF");
         String referenceSequence = getWorkflowBeanService().getAttributes().get("referenceSequence");
-        // String unifiedGenotyperIntervalList =
-        // getPipelineBeanService().getAttributes().get("unifiedGenotyperIntervalList");
+
+        Workflow ncgenesWorkflow = null;
+        try {
+            ncgenesWorkflow = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowDAO().findByName("NCGenes");
+        } catch (MaPSeqDAOException e1) {
+            e1.printStackTrace();
+        }
 
         for (HTSFSample htsfSample : htsfSampleSet) {
+
             if ("Undetermined".equals(htsfSample.getBarcode())) {
                 continue;
             }
@@ -106,17 +112,9 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             File intervalListByDXAndVersionFile = new File(String.format(format, version, dx));
 
-            String unifiedGenotyperIntervalList = intervalListByDXAndVersionFile.getAbsolutePath();
             Set<FileData> fileDataSet = htsfSample.getFileDatas();
 
             File bamFile = null;
-
-            Workflow ncgenesWorkflow = null;
-            try {
-                ncgenesWorkflow = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowDAO().findByName("NCGenes");
-            } catch (MaPSeqDAOException e1) {
-                e1.printStackTrace();
-            }
 
             List<File> potentialBAMFileList = WorkflowUtil.lookupFileByJobAndMimeTypeAndWorkflowId(fileDataSet,
                     getWorkflowBeanService().getMaPSeqDAOBean(), PicardAddOrReplaceReadGroups.class,
@@ -131,20 +129,18 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 logger.error("bam file to process was not found");
                 throw new WorkflowException("bam file to process was not found");
             }
-            List<File> readPairList = WorkflowUtil.getReadPairList(htsfSample.getFileDatas(), sequencerRun.getName(),
-                    htsfSample.getLaneIndex());
-            logger.info("fileList = {}", readPairList.size());
 
             try {
 
                 // create graph content here
                 // output variable matches
+                File gatkTableRecalibrationOut = new File(bamFile.getParentFile(), bamFile.getName().replace(".bam",
+                        ".deduped.realign.fixmate.recal.bam"));
+
                 // new job
-                String gatkTableRecalibrationOut = bamFile.getName().replace(".bam",
-                        ".deduped.realign.fixmate.recal.bam");
                 CondorJob gatkUnifiedGenotyperJob = WorkflowJobFactory.createJob(++count,
                         GATKUnifiedGenotyperCLI.class, getWorkflowPlan(), htsfSample);
-                gatkUnifiedGenotyperJob.setInitialDirectory(outputDirectory);
+                gatkUnifiedGenotyperJob.setSiteName(siteName);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.PHONEHOME,
                         GATKPhoneHomeType.NO_ET.toString());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLINGTYPE,
@@ -154,19 +150,21 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.STANDCALLCONF, "30");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.STANDEMITCONF, "0");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.GENOTYPELIKELIHOODSMODEL, "BOTH");
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INPUTFILE, gatkTableRecalibrationOut);
-                gatkUnifiedGenotyperJob.addTransferInput(gatkTableRecalibrationOut);
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INPUTFILE,
+                        gatkTableRecalibrationOut.getAbsolutePath());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.NUMTHREADS, "4");
                 gatkUnifiedGenotyperJob.setNumberOfProcessors(4);
-                String gatkUnifiedGenotyperOut = gatkTableRecalibrationOut.replace(".bam", ".incidental.vcf");
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUT, gatkUnifiedGenotyperOut);
-                gatkUnifiedGenotyperJob.addTransferOutput(gatkUnifiedGenotyperOut);
+                File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
+                        ".bam", ".incidental.vcf"));
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUT,
+                        gatkUnifiedGenotyperOut.getAbsolutePath());
                 // this is a different list that is being called
-                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INTERVALS, unifiedGenotyperIntervalList);
+                gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INTERVALS,
+                        intervalListByDXAndVersionFile.getAbsolutePath());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES");
-                String gatkUnifiedGenotyperMetrics = gatkTableRecalibrationOut.replace(".bam", ".incidental.metrics");
+                File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
+                        .replace(".bam", ".incidental.metrics"));
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.METRICS, gatkUnifiedGenotyperMetrics);
-                gatkUnifiedGenotyperJob.addTransferOutput(gatkUnifiedGenotyperMetrics);
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLETOCOVERAGE, "250");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.ANNOTATION, "AlleleBalance");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.ANNOTATION, "DepthOfCoverage");
@@ -189,22 +187,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
     @Override
     public void postRun() throws WorkflowException {
 
-        Set<HTSFSample> htsfSampleSet = new HashSet<HTSFSample>();
-
-        if (getWorkflowPlan().getSequencerRun() != null) {
-            logger.info("sequencerRun: {}", getWorkflowPlan().getSequencerRun().toString());
-            try {
-                htsfSampleSet.addAll(getWorkflowBeanService().getMaPSeqDAOBean().getHTSFSampleDAO()
-                        .findBySequencerRunId(getWorkflowPlan().getSequencerRun().getId()));
-            } catch (MaPSeqDAOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (getWorkflowPlan().getHTSFSamples() != null) {
-            logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
-            htsfSampleSet.addAll(getWorkflowPlan().getHTSFSamples());
-        }
+        Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
 
         RunModeType runMode = getWorkflowBeanService().getMaPSeqConfigurationService().getRunMode();
 
@@ -299,7 +282,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
                     ".incidental.vcf"));
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
-            
+
             for (IRODSBean bean : files2RegisterToIRODS) {
 
                 commandInput = new CommandInput();
