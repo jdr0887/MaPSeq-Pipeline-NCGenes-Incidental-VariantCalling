@@ -279,7 +279,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             List<IRODSBean> files2RegisterToIRODS = new LinkedList<IRODSBean>();
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam",
-                    ".variant.vcf"));
+                    ".vcf"));
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
                     ".incidental.vcf"));
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
