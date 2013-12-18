@@ -3,6 +3,7 @@ package edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -276,7 +277,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             // set recal out file
             String gatkTableRecalibrationOut = bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam");
 
-            List<IRODSBean> files2RegisterToIRODS = new ArrayList<IRODSBean>();
+            List<IRODSBean> files2RegisterToIRODS = new LinkedList<IRODSBean>();
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam",
                     ".variant.vcf"));
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
@@ -334,6 +335,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             for (CommandInput ci : commandInputList) {
                 try {
+                    logger.info("ci.getCommand(): {}", ci.getCommand());
                     commandOutput = executor.execute(ci, mapseqrc);
                     logger.info("commandOutput.getExitCode(): {}", commandOutput.getExitCode());
                     logger.debug("commandOutput.getStdout(): {}", commandOutput.getStdout());
