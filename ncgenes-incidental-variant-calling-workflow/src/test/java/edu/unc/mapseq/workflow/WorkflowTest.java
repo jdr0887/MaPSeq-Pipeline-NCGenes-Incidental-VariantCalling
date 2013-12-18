@@ -14,7 +14,6 @@ import org.renci.jlrm.condor.CondorJobEdge;
 
 import edu.unc.mapseq.module.core.CatCLI;
 import edu.unc.mapseq.module.core.EchoCLI;
-import edu.unc.mapseq.workflow.WorkflowJobFactory;
 
 public class WorkflowTest {
 
