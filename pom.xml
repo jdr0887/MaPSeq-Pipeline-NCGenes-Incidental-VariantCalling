@@ -3,20 +3,19 @@
   <parent>
     <groupId>edu.unc.mapseq</groupId>
     <artifactId>mapseq</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.10</version>
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes Incidental Variant Calling</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-incidental-variant-calling</artifactId>
-  <version>0.0.26-SNAPSHOT</version>
+  <version>0.0.27-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
     <karaf.version>2.3.3</karaf.version>
     <activemq.version>5.8.0</activemq.version>
     <mapseq.version>0.2.45</mapseq.version>
     <mapseq.modules.version>0.0.44</mapseq.modules.version>
-    <renci.commons.version>0.2.0</renci.commons.version>
   </properties>
   <issueManagement>
     <system>gForge</system>
@@ -130,14 +129,9 @@
       	<scope>provided</scope>
       </dependency>
       <dependency>
-      	<groupId>org.renci.commons</groupId>
-      	<artifactId>commons-exec</artifactId>
-      	<version>${renci.commons.version}</version>
-      </dependency>
-      <dependency>
       	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
-      	<version>0.0.26-SNAPSHOT</version>
+      	<version>0.0.27-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
