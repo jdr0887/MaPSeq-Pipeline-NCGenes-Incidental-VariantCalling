@@ -9,9 +9,9 @@
       <cm:property name="maxPoolSize" value="10" />
       <cm:property name="siteName" value="Kure" />
       <cm:property name="referenceSequence"
-        value="$NCGENESDX_REFERENCES_DIRECTORY/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
+        value="$NCGENESINCIDENTAL_REFERENCES_DIRECTORY/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
       <cm:property name="knownVCF"
-        value="$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/gatk/bundle/1.2/b37/dbsnp_132.b37.renci.shortid.vcf" />
+        value="$NCGENESINCIDENTAL_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/gatk/bundle/1.2/b37/dbsnp_132.b37.renci.shortid.vcf" />
     </cm:default-properties>
   </cm:property-placeholder>
 

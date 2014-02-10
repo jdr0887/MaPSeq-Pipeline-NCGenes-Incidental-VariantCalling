@@ -71,7 +71,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
         int count = 0;
         // will come over from active mq JSON request
         String version = null;
-        String dx = null;
+        String incidental = null;
 
         Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
         logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
@@ -100,8 +100,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 if ("version".equals(attribute.getName())) {
                     version = attribute.getValue();
                 }
-                if ("dx".equals(attribute.getName())) {
-                    dx = attribute.getValue();
+                if ("incidental".equals(attribute.getName())) {
+                    incidental = attribute.getValue();
                 }
             }
 
@@ -109,9 +109,9 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
                     getName().replace("IncidentalVariantCalling", ""), getVersion());
 
-            String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%2$s_%1$s.interval_list";
+            String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_%s.interval_list";
 
-            File intervalListByDXAndVersionFile = new File(String.format(format, version, dx));
+            File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental, version));
 
             Set<FileData> fileDataSet = htsfSample.getFileDatas();
 
@@ -156,15 +156,15 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.NUMTHREADS, "4");
                 gatkUnifiedGenotyperJob.setNumberOfProcessors(4);
                 File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
-                        ".bam", ".incidental.vcf"));
+                        ".bam", String.format(".incidental-%s.v-%s.vcf", incidental,version )));
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUT,
                         gatkUnifiedGenotyperOut.getAbsolutePath());
                 // this is a different list that is being called
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.INTERVALS,
-                        intervalListByDXAndVersionFile.getAbsolutePath());
+                        intervalListByIncidentalAndVersionFile.getAbsolutePath());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES");
                 File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
-                        .replace(".bam", ".incidental.metrics"));
+                        .replace(".bam", String.format(".incidental-%s.v-%s.metrics", incidental,version )));
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.METRICS, gatkUnifiedGenotyperMetrics.getAbsolutePath());
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLETOCOVERAGE, "250");
                 gatkUnifiedGenotyperJob.addArgument(GATKUnifiedGenotyperCLI.ANNOTATION, "AlleleBalance");
@@ -230,8 +230,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             // assumption: a dash is used as a delimiter between a participantId
             // and the external code
-            int idx = htsfSample.getName().lastIndexOf("-");
-            String participantId = idx != -1 ? htsfSample.getName().substring(0, idx) : htsfSample.getName();
+            int iincidental = htsfSample.getName().lastIndexOf("-");
+            String participantId = iincidental != -1 ? htsfSample.getName().substring(0, iincidental) : htsfSample.getName();
 
             String irodsHome = System.getenv("NCGENES_IRODS_HOME");
             if (StringUtils.isEmpty(irodsHome)) {
@@ -315,7 +315,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
                 if (StringUtils.isNotEmpty(bean.getDx())) {
                     commandInput = new CommandInput();
-                    commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s DxID %s NCGENES", irodsHome,
+                    commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalID %s NCGENES", irodsHome,
                             ncgenesIRODSDirectory, bean.getFile().getName(), bean.getDx()));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
@@ -323,11 +323,19 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
                 if (StringUtils.isNotEmpty(bean.getVersion())) {
                     commandInput = new CommandInput();
-                    commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s DxVersion %s NCGENES", irodsHome,
+                    commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalVersion %s NCGENES", irodsHome,
                             ncgenesIRODSDirectory, bean.getFile().getName(), bean.getVersion()));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
+
+                commandInput = new CommandInput();
+                commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s System %s NCGENES", irodsHome,
+                        ncgenesIRODSDirectory, bean.getFile().getName(),
+                        StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
+                commandInput.setWorkDir(tmpDir);
+                commandInputList.add(commandInput);
+
             }
 
             File mapseqrc = new File(System.getProperty("user.home"), ".mapseqrc");
