@@ -109,7 +109,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
                     getName().replace("IncidentalVariantCalling", ""), getVersion());
 
-            String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_%s.interval_list";
+            String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list";
 
             File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental, version));
 
