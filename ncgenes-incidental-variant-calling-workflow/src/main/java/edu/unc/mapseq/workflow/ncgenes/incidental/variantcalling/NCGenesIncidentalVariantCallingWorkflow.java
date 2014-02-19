@@ -284,18 +284,19 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                     ".vcf"));
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
                     ".incidental.vcf"));
+            
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
 
             for (IRODSBean bean : files2RegisterToIRODS) {
-
+                
                 commandInput = new CommandInput();
                 commandInput.setExitImmediately(Boolean.FALSE);
 
                 StringBuilder registerCommandSB = new StringBuilder();
                 String registrationCommand = String.format("%s/bin/ireg -f %s %s/%s", irodsHome, bean.getFile()
-                        .getAbsolutePath(), ncgenesIRODSDirectory, bean.getFile().getName());
+                        .getAbsolutePath(), ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"));
                 String deRegistrationCommand = String.format("%s/bin/irm -U %s/%s", irodsHome, ncgenesIRODSDirectory,
-                        bean.getFile().getName());
+                        bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"));
                 registerCommandSB.append(registrationCommand).append("\n");
                 registerCommandSB.append(String.format("if [ $? != 0 ]; then %s; %s; fi%n", deRegistrationCommand,
                         registrationCommand));
@@ -305,20 +306,20 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
                 commandInput = new CommandInput();
                 commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s ParticipantID %s NCGENES", irodsHome,
-                        ncgenesIRODSDirectory, bean.getFile().getName(), participantId));
+                        ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"), participantId));
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
 
                 commandInput = new CommandInput();
                 commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s FileType %s NCGENES", irodsHome,
-                        ncgenesIRODSDirectory, bean.getFile().getName(), bean.getType()));
+                        ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"), bean.getType()));
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
 
                 if (StringUtils.isNotEmpty(bean.getDx())) {
                     commandInput = new CommandInput();
                     commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalID %s NCGENES", irodsHome,
-                            ncgenesIRODSDirectory, bean.getFile().getName(), bean.getDx()));
+                            ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"), bean.getDx()));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
@@ -326,14 +327,14 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 if (StringUtils.isNotEmpty(bean.getVersion())) {
                     commandInput = new CommandInput();
                     commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalVersion %s NCGENES", irodsHome,
-                            ncgenesIRODSDirectory, bean.getFile().getName(), bean.getVersion()));
+                            ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"), bean.getVersion()));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
 
                 commandInput = new CommandInput();
                 commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s System %s NCGENES", irodsHome,
-                        ncgenesIRODSDirectory, bean.getFile().getName(),
+                        ncgenesIRODSDirectory, bean.getFile().getName().replace(".vcf", "-" + bean.getDx() + ".v-" + bean.getVersion() + ".vcf"),
                         StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
