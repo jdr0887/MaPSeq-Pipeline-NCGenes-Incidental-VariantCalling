@@ -111,7 +111,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list";
 
-            File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental, version));
+            File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental));
 
             Set<FileData> fileDataSet = htsfSample.getFileDatas();
 
@@ -191,6 +191,9 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
         Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
 
         RunModeType runMode = getWorkflowBeanService().getMaPSeqConfigurationService().getRunMode();
+        
+        String version = null;
+        String incidental = null;
 
         Workflow ncgenesWorkflow = null;
         try {
@@ -204,11 +207,30 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             if ("Undetermined".equals(htsfSample.getBarcode())) {
                 continue;
             }
-
-            File outputDirectory = new File(htsfSample.getOutputDirectory());
+            
+            SequencerRun sequencerRun = htsfSample.getSequencerRun();
+            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
+                    getName().replace("IncidentalVariantCalling", ""), getVersion());          
             File tmpDir = new File(outputDirectory, "tmp");
             if (!tmpDir.exists()) {
                 tmpDir.mkdirs();
+            }
+            
+            Set<EntityAttribute> attributeSet = htsfSample.getAttributes();
+            Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+            while (attributeIter.hasNext()) {
+                EntityAttribute attribute = attributeIter.next();
+                if ("version".equals(attribute.getName())) {
+                    version = attribute.getValue();
+                }
+                if ("incidental".equals(attribute.getName())) {
+                    incidental = attribute.getValue();
+                }
+            }
+
+            if (version == null & incidental == null) {
+                logger.warn("Both version and incidental id were null...returning empty irods post-run registration dag");
+                return;
             }
 
             Set<FileData> fileDataSet = htsfSample.getFileDatas();
@@ -281,7 +303,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam",
                     ".vcf"));
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
-                    ".incidental.vcf"));
+                    ".incidental-" + incidental + ".v-" + version + ".vcf"));
+            
             files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
 
             for (IRODSBean bean : files2RegisterToIRODS) {
@@ -313,18 +336,18 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
 
-                if (StringUtils.isNotEmpty(bean.getDx())) {
+                if (StringUtils.isNotEmpty(incidental)) {
                     commandInput = new CommandInput();
                     commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalID %s NCGENES", irodsHome,
-                            ncgenesIRODSDirectory, bean.getFile().getName(), bean.getDx()));
+                            ncgenesIRODSDirectory, bean.getFile().getName(), incidental));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
 
-                if (StringUtils.isNotEmpty(bean.getVersion())) {
+                if (StringUtils.isNotEmpty(version)) {
                     commandInput = new CommandInput();
                     commandInput.setCommand(String.format("%s/bin/imeta add -d %s/%s IncidentalVersion %s NCGENES", irodsHome,
-                            ncgenesIRODSDirectory, bean.getFile().getName(), bean.getVersion()));
+                            ncgenesIRODSDirectory, bean.getFile().getName(), version));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
