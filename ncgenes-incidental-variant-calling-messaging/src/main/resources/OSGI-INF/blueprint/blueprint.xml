@@ -7,10 +7,16 @@
   <reference id="NCGenesIncidentalVariantCallingWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
     component-name="NCGenesIncidentalVariantCallingWorkflowBeanService" />
 
-  <bean id="NCGenesIncidentalVariantCallingMessageService" class="edu.unc.mapseq.messaging.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingMessageService"
+  <bean id="NCGenesIncidentalVariantCallingMessageListener"
+    class="edu.unc.mapseq.messaging.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingMessageListener">
+    <property name="workflowBeanService" ref="NCGenesIncidentalVariantCallingWorkflowBeanService" />
+  </bean>
+
+  <bean id="NCGenesIncidentalVariantCallingMessageService"
+    class="edu.unc.mapseq.messaging.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingMessageService"
     init-method="start" destroy-method="stop" activation="eager">
     <property name="connectionFactory" ref="connectionFactory" />
-    <property name="workflowBeanService" ref="NCGenesIncidentalVariantCallingWorkflowBeanService" />
+    <property name="messageListener" ref="NCGenesIncidentalVariantCallingMessageListener" />
     <property name="destinationName" value="queue/ncgenes.incidental.variantcalling" />
   </bean>
 
