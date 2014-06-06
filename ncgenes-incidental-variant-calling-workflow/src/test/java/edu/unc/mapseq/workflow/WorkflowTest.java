@@ -8,12 +8,13 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.ext.VertexNameProvider;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.junit.Test;
-import org.renci.jlrm.condor.ext.CondorDOTExporter;
 import org.renci.jlrm.condor.CondorJob;
 import org.renci.jlrm.condor.CondorJobEdge;
+import org.renci.jlrm.condor.ext.CondorDOTExporter;
 
 import edu.unc.mapseq.module.core.CatCLI;
 import edu.unc.mapseq.module.core.EchoCLI;
+import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class WorkflowTest {
 
@@ -26,15 +27,15 @@ public class WorkflowTest {
         int count = 0;
 
         // new job
-        CondorJob helloJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null);
+        CondorJob helloJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
         graph.addVertex(helloJob);
 
         // new job
-        CondorJob worldJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null);
+        CondorJob worldJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
         graph.addVertex(worldJob);
 
         // new job
-        CondorJob catJob = WorkflowJobFactory.createJob(++count, CatCLI.class, null);
+        CondorJob catJob = WorkflowJobFactory.createJob(++count, CatCLI.class, null).build();
         graph.addVertex(catJob);
         graph.addEdge(helloJob, catJob);
         graph.addEdge(worldJob, catJob);
