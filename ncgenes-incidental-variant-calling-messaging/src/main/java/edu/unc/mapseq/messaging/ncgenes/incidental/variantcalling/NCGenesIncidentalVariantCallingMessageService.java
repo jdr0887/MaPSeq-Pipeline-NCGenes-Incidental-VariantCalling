@@ -9,15 +9,13 @@ import javax.jms.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.workflow.WorkflowBeanService;
-
 public class NCGenesIncidentalVariantCallingMessageService {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingMessageService.class);
 
     private ConnectionFactory connectionFactory;
 
-    private WorkflowBeanService workflowBeanService;
+    private NCGenesIncidentalVariantCallingMessageListener messageListener;
 
     private String destinationName;
 
@@ -35,9 +33,7 @@ public class NCGenesIncidentalVariantCallingMessageService {
         this.session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         Destination destination = this.session.createQueue(this.destinationName);
         MessageConsumer consumer = session.createConsumer(destination);
-        NCGenesIncidentalVariantCallingMessageListener messageListener = new NCGenesIncidentalVariantCallingMessageListener();
-        messageListener.setWorkflowBeanService(workflowBeanService);
-        consumer.setMessageListener(messageListener);
+        consumer.setMessageListener(getMessageListener());
         this.connection.start();
     }
 
@@ -60,12 +56,12 @@ public class NCGenesIncidentalVariantCallingMessageService {
         this.connectionFactory = connectionFactory;
     }
 
-    public WorkflowBeanService getWorkflowBeanService() {
-        return workflowBeanService;
+    public NCGenesIncidentalVariantCallingMessageListener getMessageListener() {
+        return messageListener;
     }
 
-    public void setWorkflowBeanService(WorkflowBeanService workflowBeanService) {
-        this.workflowBeanService = workflowBeanService;
+    public void setMessageListener(NCGenesIncidentalVariantCallingMessageListener messageListener) {
+        this.messageListener = messageListener;
     }
 
     public String getDestinationName() {
