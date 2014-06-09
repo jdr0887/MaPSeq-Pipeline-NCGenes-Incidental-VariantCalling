@@ -24,13 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.config.RunModeType;
+import edu.unc.mapseq.dao.MaPSeqDAOBean;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
+import edu.unc.mapseq.dao.WorkflowDAO;
 import edu.unc.mapseq.dao.model.EntityAttribute;
 import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.module.gatk.GATKDownsamplingType;
 import edu.unc.mapseq.module.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
@@ -81,12 +84,17 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
         String knownVCF = getWorkflowBeanService().getAttributes().get("knownVCF");
         String referenceSequence = getWorkflowBeanService().getAttributes().get("referenceSequence");
 
+        MaPSeqDAOBean daoBean = getWorkflowBeanService().getMaPSeqDAOBean();
+        WorkflowDAO workflowDAO = daoBean.getWorkflowDAO();
+
         Workflow ncgenesWorkflow = null;
         try {
-            ncgenesWorkflow = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowDAO().findByName("NCGenes");
+            ncgenesWorkflow = workflowDAO.findByName("NCGenes");
         } catch (MaPSeqDAOException e1) {
             e1.printStackTrace();
         }
+
+        WorkflowRun workflowRun = getWorkflowPlan().getWorkflowRun();
 
         for (HTSFSample htsfSample : htsfSampleSet) {
 
@@ -94,15 +102,17 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 continue;
             }
 
-            Set<EntityAttribute> attributeSet = htsfSample.getAttributes();
-            Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
-            while (attributeIter.hasNext()) {
-                EntityAttribute attribute = attributeIter.next();
-                if ("version".equals(attribute.getName())) {
-                    version = attribute.getValue();
-                }
-                if ("incidental".equals(attribute.getName())) {
-                    incidental = attribute.getValue();
+            Set<EntityAttribute> attributeSet = workflowRun.getAttributes();
+            if (attributeSet != null && !attributeSet.isEmpty()) {
+                Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+                while (attributeIter.hasNext()) {
+                    EntityAttribute attribute = attributeIter.next();
+                    if ("version".equals(attribute.getName())) {
+                        version = attribute.getValue();
+                    }
+                    if ("incidental".equals(attribute.getName())) {
+                        incidental = attribute.getValue();
+                    }
                 }
             }
 
@@ -199,6 +209,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             e1.printStackTrace();
         }
 
+        WorkflowRun workflowRun = getWorkflowPlan().getWorkflowRun();
+
         for (HTSFSample htsfSample : htsfSampleSet) {
 
             if ("Undetermined".equals(htsfSample.getBarcode())) {
@@ -213,18 +225,20 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 tmpDir.mkdirs();
             }
 
-            Set<EntityAttribute> attributeSet = htsfSample.getAttributes();
-            Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
-            while (attributeIter.hasNext()) {
-                EntityAttribute attribute = attributeIter.next();
-                if ("version".equals(attribute.getName())) {
-                    version = attribute.getValue();
-                }
-                if ("incidental".equals(attribute.getName())) {
-                    incidental = attribute.getValue();
+            Set<EntityAttribute> attributeSet = workflowRun.getAttributes();
+            if (attributeSet != null && !attributeSet.isEmpty()) {
+                Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+                while (attributeIter.hasNext()) {
+                    EntityAttribute attribute = attributeIter.next();
+                    if ("version".equals(attribute.getName())) {
+                        version = attribute.getValue();
+                    }
+                    if ("incidental".equals(attribute.getName())) {
+                        incidental = attribute.getValue();
+                    }
                 }
             }
-
+            
             if (version == null & incidental == null) {
                 logger.warn("Both version and incidental id were null...returning empty irods post-run registration dag");
                 return;
