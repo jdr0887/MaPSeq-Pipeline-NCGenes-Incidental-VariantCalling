@@ -50,7 +50,12 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
         WorkflowPlanDAO workflowPlanDAO = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowPlanDAO();
 
         try {
-            Workflow workflow = workflowDAO.findByName("NCGenesIncidentalVariantCalling");
+            List<Workflow> workflowList = workflowDAO.findByName("NCGenesIncidentalVariantCalling");
+            if (workflowList == null || (workflowList != null && workflowList.isEmpty())) {
+                logger.error("No Workflow Found: {}", "NCGenesIncidentalVariantCalling");
+                return;
+            }
+            Workflow workflow = workflowList.get(0);
             List<WorkflowPlan> workflowPlanList = workflowPlanDAO.findEnqueued(workflow.getId());
 
             if (workflowPlanList != null && workflowPlanList.size() > 0) {
