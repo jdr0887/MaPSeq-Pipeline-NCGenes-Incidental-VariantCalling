@@ -27,24 +27,24 @@ import edu.unc.mapseq.config.RunModeType;
 import edu.unc.mapseq.dao.MaPSeqDAOBean;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.WorkflowDAO;
-import edu.unc.mapseq.dao.model.EntityAttribute;
+import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.FileData;
-import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.MimeType;
-import edu.unc.mapseq.dao.model.SequencerRun;
+import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.gatk.GATKDownsamplingType;
 import edu.unc.mapseq.module.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.WorkflowUtil;
-import edu.unc.mapseq.workflow.impl.AbstractWorkflow;
+import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
 import edu.unc.mapseq.workflow.impl.IRODSBean;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
-public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
+public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkflow {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflow.class);
 
@@ -77,8 +77,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
         String version = null;
         String incidental = null;
 
-        Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
-        logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
+        Set<Sample> sampleSet = getAggregatedSamples();
+        logger.info("sampleSet.size(): {}", sampleSet.size());
 
         String siteName = getWorkflowBeanService().getAttributes().get("siteName");
         String knownVCF = getWorkflowBeanService().getAttributes().get("knownVCF");
@@ -94,19 +94,22 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             e1.printStackTrace();
         }
 
-        WorkflowRun workflowRun = getWorkflowPlan().getWorkflowRun();
+        WorkflowRunAttempt attempt = getWorkflowRunAttempt();
+        WorkflowRun workflowRun = attempt.getWorkflowRun();
 
-        for (HTSFSample htsfSample : htsfSampleSet) {
+        for (Sample sample : sampleSet) {
 
-            if ("Undetermined".equals(htsfSample.getBarcode())) {
+            if ("Undetermined".equals(sample.getBarcode())) {
                 continue;
             }
 
-            Set<EntityAttribute> attributeSet = workflowRun.getAttributes();
+            logger.debug(sample.toString());
+
+            Set<Attribute> attributeSet = workflowRun.getAttributes();
             if (attributeSet != null && !attributeSet.isEmpty()) {
-                Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+                Iterator<Attribute> attributeIter = attributeSet.iterator();
                 while (attributeIter.hasNext()) {
-                    EntityAttribute attribute = attributeIter.next();
+                    Attribute attribute = attributeIter.next();
                     if ("version".equals(attribute.getName())) {
                         version = attribute.getValue();
                     }
@@ -116,15 +119,13 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                 }
             }
 
-            SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
-                    getName().replace("IncidentalVariantCalling", ""), getVersion());
+            File outputDirectory = new File(sample.getOutputDirectory());
 
             String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list";
 
             File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental));
 
-            Set<FileData> fileDataSet = htsfSample.getFileDatas();
+            Set<FileData> fileDataSet = sample.getFileDatas();
 
             File bamFile = null;
 
@@ -151,8 +152,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
                 // new job
                 CondorJobBuilder builder = WorkflowJobFactory
-                        .createJob(++count, GATKUnifiedGenotyperCLI.class, getWorkflowPlan(), htsfSample)
-                        .siteName(siteName).numberOfProcessors(4);
+                        .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt, sample).siteName(siteName)
+                        .numberOfProcessors(4);
                 File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
                         ".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
                 File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
@@ -195,7 +196,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
     @Override
     public void postRun() throws WorkflowException {
 
-        Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
+        Set<Sample> sampleSet = getAggregatedSamples();
 
         RunModeType runMode = getWorkflowBeanService().getMaPSeqConfigurationService().getRunMode();
 
@@ -209,27 +210,26 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
             e1.printStackTrace();
         }
 
-        WorkflowRun workflowRun = getWorkflowPlan().getWorkflowRun();
+        WorkflowRunAttempt attempt = getWorkflowRunAttempt();
+        WorkflowRun workflowRun = attempt.getWorkflowRun();
 
-        for (HTSFSample htsfSample : htsfSampleSet) {
+        for (Sample sample : sampleSet) {
 
-            if ("Undetermined".equals(htsfSample.getBarcode())) {
+            if ("Undetermined".equals(sample.getBarcode())) {
                 continue;
             }
 
-            SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
-                    getName().replace("IncidentalVariantCalling", ""), getVersion());
+            File outputDirectory = new File(sample.getOutputDirectory());
             File tmpDir = new File(outputDirectory, "tmp");
             if (!tmpDir.exists()) {
                 tmpDir.mkdirs();
             }
 
-            Set<EntityAttribute> attributeSet = workflowRun.getAttributes();
+            Set<Attribute> attributeSet = workflowRun.getAttributes();
             if (attributeSet != null && !attributeSet.isEmpty()) {
-                Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
+                Iterator<Attribute> attributeIter = attributeSet.iterator();
                 while (attributeIter.hasNext()) {
-                    EntityAttribute attribute = attributeIter.next();
+                    Attribute attribute = attributeIter.next();
                     if ("version".equals(attribute.getName())) {
                         version = attribute.getValue();
                     }
@@ -238,13 +238,13 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
                     }
                 }
             }
-            
+
             if (version == null & incidental == null) {
                 logger.warn("Both version and incidental id were null...returning empty irods post-run registration dag");
                 return;
             }
 
-            Set<FileData> fileDataSet = htsfSample.getFileDatas();
+            Set<FileData> fileDataSet = sample.getFileDatas();
             File bamFile = null;
 
             List<File> potentialBAMFileList = WorkflowUtil.lookupFileByJobAndMimeTypeAndWorkflowId(fileDataSet,
@@ -263,9 +263,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractWorkflow {
 
             // assumption: a dash is used as a delimiter between a participantId
             // and the external code
-            int iincidental = htsfSample.getName().lastIndexOf("-");
-            String participantId = iincidental != -1 ? htsfSample.getName().substring(0, iincidental) : htsfSample
-                    .getName();
+            int idx = sample.getName().lastIndexOf("-");
+            String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
             String irodsHome = System.getenv("NCGENES_IRODS_HOME");
             if (StringUtils.isEmpty(irodsHome)) {
