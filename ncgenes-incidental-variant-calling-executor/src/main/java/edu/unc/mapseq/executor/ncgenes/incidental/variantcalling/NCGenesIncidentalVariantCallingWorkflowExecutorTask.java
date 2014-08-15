@@ -9,11 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.WorkflowDAO;
-import edu.unc.mapseq.dao.WorkflowPlanDAO;
-import edu.unc.mapseq.dao.WorkflowRunDAO;
+import edu.unc.mapseq.dao.WorkflowRunAttemptDAO;
 import edu.unc.mapseq.dao.model.Workflow;
-import edu.unc.mapseq.dao.model.WorkflowPlan;
-import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.workflow.WorkflowBeanService;
 import edu.unc.mapseq.workflow.WorkflowExecutor;
 import edu.unc.mapseq.workflow.WorkflowTPE;
@@ -46,8 +44,8 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
                 threadPoolExecutor.getCompletedTaskCount()));
 
         WorkflowDAO workflowDAO = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowDAO();
-        WorkflowRunDAO workflowRunDAO = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowRunDAO();
-        WorkflowPlanDAO workflowPlanDAO = getWorkflowBeanService().getMaPSeqDAOBean().getWorkflowPlanDAO();
+        WorkflowRunAttemptDAO workflowRunAttemptDAO = this.workflowBeanService.getMaPSeqDAOBean()
+                .getWorkflowRunAttemptDAO();
 
         try {
             List<Workflow> workflowList = workflowDAO.findByName("NCGenesIncidentalVariantCalling");
@@ -56,22 +54,18 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
                 return;
             }
             Workflow workflow = workflowList.get(0);
-            List<WorkflowPlan> workflowPlanList = workflowPlanDAO.findEnqueued(workflow.getId());
-
-            if (workflowPlanList != null && workflowPlanList.size() > 0) {
-
-                logger.info("dequeuing {} WorkflowPlans", workflowPlanList.size());
-                for (WorkflowPlan workflowPlan : workflowPlanList) {
+            List<WorkflowRunAttempt> attempts = workflowRunAttemptDAO.findEnqueued(workflow.getId());
+            if (attempts != null && !attempts.isEmpty()) {
+                logger.info("dequeuing {} WorkflowRunAttempt", attempts.size());
+                for (WorkflowRunAttempt attempt : attempts) {
 
                     NCGenesIncidentalVariantCallingWorkflow ncGenesIncidentalVariantCallingWorkflow = new NCGenesIncidentalVariantCallingWorkflow();
-
-                    WorkflowRun workflowRun = workflowPlan.getWorkflowRun();
-                    workflowRun.setVersion(ncGenesIncidentalVariantCallingWorkflow.getVersion());
-                    workflowRun.setDequeuedDate(new Date());
-                    workflowRunDAO.save(workflowRun);
+                    attempt.setVersion(ncGenesIncidentalVariantCallingWorkflow.getVersion());
+                    attempt.setDequeued(new Date());
+                    workflowRunAttemptDAO.save(attempt);
 
                     ncGenesIncidentalVariantCallingWorkflow.setWorkflowBeanService(workflowBeanService);
-                    ncGenesIncidentalVariantCallingWorkflow.setWorkflowPlan(workflowPlan);
+                    ncGenesIncidentalVariantCallingWorkflow.setWorkflowRunAttempt(attempt);
                     threadPoolExecutor.submit(new WorkflowExecutor(ncGenesIncidentalVariantCallingWorkflow));
 
                 }
