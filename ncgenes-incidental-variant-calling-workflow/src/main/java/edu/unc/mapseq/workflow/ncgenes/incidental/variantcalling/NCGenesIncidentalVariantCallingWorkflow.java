@@ -119,7 +119,10 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
                 }
             }
 
-            File outputDirectory = new File(sample.getOutputDirectory());
+            File outputDirectory = new File(sample.getOutputDirectory(), getName().replace("IncidentalVariantCalling",
+                    ""));
+            File tmpDirectory = new File(outputDirectory, "tmp");
+            tmpDirectory.mkdirs();
 
             String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list";
 
