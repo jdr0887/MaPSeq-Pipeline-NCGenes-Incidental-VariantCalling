@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-incidental-variant-calling</artifactId>
-  <version>0.5.3-SNAPSHOT</version>
+  <version>0.5.3</version>
   <packaging>pom</packaging>
   <issueManagement>
     <system>gForge</system>
@@ -37,14 +37,14 @@
   <scm>
     <developerConnection>scm:git:ssh://${user.name}@code.renci.org/gitroot/mps_ncg_ivc_pl</developerConnection>
     <connection>scm:git:ssh://developername@code.renci.org/gitroot/mps_ncg_ivc_pl</connection>
-    <tag>HEAD</tag>
+    <tag>ncgenes-incidental-variant-calling-0.5.3</tag>
   </scm>
   <dependencyManagement>
     <dependencies>
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
-      	<version>0.5.3-SNAPSHOT</version>
+      	<version>0.5.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
