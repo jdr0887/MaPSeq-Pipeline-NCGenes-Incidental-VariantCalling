@@ -26,19 +26,23 @@ public class WorkflowTest {
 
         int count = 0;
 
-        // new job
-        CondorJob helloJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
-        graph.addVertex(helloJob);
+        try {
+            // new job
+            CondorJob helloJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
+            graph.addVertex(helloJob);
 
-        // new job
-        CondorJob worldJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
-        graph.addVertex(worldJob);
+            // new job
+            CondorJob worldJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
+            graph.addVertex(worldJob);
 
-        // new job
-        CondorJob catJob = WorkflowJobFactory.createJob(++count, CatCLI.class, null).build();
-        graph.addVertex(catJob);
-        graph.addEdge(helloJob, catJob);
-        graph.addEdge(worldJob, catJob);
+            // new job
+            CondorJob catJob = WorkflowJobFactory.createJob(++count, CatCLI.class, null).build();
+            graph.addVertex(catJob);
+            graph.addEdge(helloJob, catJob);
+            graph.addEdge(worldJob, catJob);
+        } catch (WorkflowException e1) {
+            e1.printStackTrace();
+        }
 
         VertexNameProvider<CondorJob> vnpId = new VertexNameProvider<CondorJob>() {
             @Override
