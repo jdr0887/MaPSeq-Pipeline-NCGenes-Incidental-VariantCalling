@@ -155,7 +155,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
                 // new job
                 CondorJobBuilder builder = WorkflowJobFactory
-                        .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt).siteName(siteName)
+                        .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
                         .numberOfProcessors(4);
                 File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
                         ".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
