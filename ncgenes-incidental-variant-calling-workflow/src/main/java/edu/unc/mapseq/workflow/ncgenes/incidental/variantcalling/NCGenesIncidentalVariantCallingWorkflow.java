@@ -394,9 +394,4 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
     }
 
-    @Override
-    public void cleanUp() throws WorkflowException {
-        // do nothing
-    }
-
 }
