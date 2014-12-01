@@ -13,6 +13,10 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
+      <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
+      <artifactId>ncgenes-incidental-variant-calling-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>

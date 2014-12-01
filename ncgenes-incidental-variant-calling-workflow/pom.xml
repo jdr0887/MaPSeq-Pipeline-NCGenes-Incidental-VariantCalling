@@ -24,6 +24,10 @@
       <groupId>edu.unc.mapseq.distribution</groupId>
       <artifactId>mapseq-modules</artifactId>
     </dependency>
+    <dependency>
+      <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
+      <artifactId>ncgenes-incidental-variant-calling-commons</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
