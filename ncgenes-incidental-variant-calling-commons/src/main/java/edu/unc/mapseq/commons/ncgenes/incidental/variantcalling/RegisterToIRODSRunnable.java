@@ -149,9 +149,16 @@ public class RegisterToIRODSRunnable implements Runnable {
             List<IRODSBean> files2RegisterToIRODS = new LinkedList<IRODSBean>();
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam", ".vcf"));
             File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
-                    ".incidental-" + incidental + ".v-" + version + ".vcf"));
+                    String.format(".incidental-%s.v-%s.vcf", incidental, version)));
 
-            files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", null, null, runMode));
+            if (!gatkApplyRecalibrationOut.exists()) {
+                outputDirectory = new File(sample.getOutputDirectory(), "NCGenesIncidentalVariantCalling");
+                gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf",
+                        String.format(".incidental-%s.v-%s.vcf", incidental, version)));
+            }
+
+            files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", version, incidental,
+                    runMode));
 
             for (IRODSBean bean : files2RegisterToIRODS) {
 
@@ -183,8 +190,10 @@ public class RegisterToIRODSRunnable implements Runnable {
                         ncgenesIRODSDirectory, f.getName(), participantId));
                 sb.append(String.format("%s/bin/imeta add -d %s/%s FileType %s NCGENES%n", irodsHome,
                         ncgenesIRODSDirectory, f.getName(), bean.getType()));
-                sb.append(String.format("%s/bin/imeta add -d %s/%s System %s NCGENES%n", irodsHome, ncgenesIRODSDirectory,
-                        f.getName(), StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
+                sb.append(String.format("%s/bin/imeta add -d %s/%s System %s NCGENES%n", irodsHome,
+                        ncgenesIRODSDirectory, f.getName(),
+                        StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
+                commandInput.setCommand(sb.toString());
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
 
