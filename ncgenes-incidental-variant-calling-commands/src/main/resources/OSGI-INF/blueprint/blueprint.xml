@@ -3,6 +3,12 @@
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
     <command>
+      <action class="edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.RegisterToIRODSAction">
+        <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
+        <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
+      </action>
+    </command>
+    <command>
       <action class="edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingRunWorkflowAction">
         <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
         <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
