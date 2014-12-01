@@ -114,8 +114,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
                 }
             }
 
-            File outputDirectory = new File(sample.getOutputDirectory(), getName().replace("IncidentalVariantCalling",
-                    ""));
+            File outputDirectory = new File(sample.getOutputDirectory(), getName());
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
