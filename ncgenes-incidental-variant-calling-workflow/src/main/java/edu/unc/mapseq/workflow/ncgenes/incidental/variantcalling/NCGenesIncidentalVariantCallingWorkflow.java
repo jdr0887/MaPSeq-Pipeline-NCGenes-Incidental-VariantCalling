@@ -2,7 +2,6 @@ package edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -35,9 +34,9 @@ import edu.unc.mapseq.module.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.WorkflowUtil;
 import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
+import edu.unc.mapseq.workflow.impl.WorkflowUtil;
 
 public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkflow {
 
@@ -124,16 +123,9 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = null;
-
-            List<File> potentialBAMFileList = WorkflowUtil.lookupFileByJobAndMimeTypeAndWorkflowId(fileDataSet,
-                    getWorkflowBeanService().getMaPSeqDAOBean(), PicardAddOrReplaceReadGroups.class,
-                    MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
-
-            // assume that only one PicardAddOrReplaceReadGroups job exists
-            if (potentialBAMFileList.size() > 0) {
-                bamFile = potentialBAMFileList.get(0);
-            }
+            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService()
+                    .getMaPSeqDAOBean(), fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM,
+                    ncgenesWorkflow.getId());
 
             if (bamFile == null) {
                 logger.error("bam file to process was not found");

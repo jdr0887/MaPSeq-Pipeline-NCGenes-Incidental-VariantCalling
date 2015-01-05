@@ -25,8 +25,8 @@ import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
-import edu.unc.mapseq.workflow.WorkflowUtil;
 import edu.unc.mapseq.workflow.impl.IRODSBean;
+import edu.unc.mapseq.workflow.impl.WorkflowUtil;
 
 public class RegisterToIRODSRunnable implements Runnable {
 
@@ -86,16 +86,9 @@ public class RegisterToIRODSRunnable implements Runnable {
             }
 
             Set<FileData> fileDataSet = sample.getFileDatas();
-            File bamFile = null;
 
-            List<File> potentialBAMFileList = WorkflowUtil.lookupFileByJobAndMimeTypeAndWorkflowId(fileDataSet,
-                    mapseqDAOBean, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM,
-                    ncgenesWorkflow.getId());
-
-            // assume that only one PicardAddOrReplaceReadGroups job exists
-            if (potentialBAMFileList.size() > 0) {
-                bamFile = potentialBAMFileList.get(0);
-            }
+            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(mapseqDAOBean, fileDataSet,
+                    PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
                 logger.error("bam file to process was not found");
