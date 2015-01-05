@@ -34,7 +34,7 @@ public class MessagingTest {
             String format = "{\"entities\":[{\"entityType\":\"Sample\",\"id\":\"%d\"},{\"entityType\":\"WorkflowRun\",\"name\":\"%s\",\"attributes\":[{\"name\":\"version\",\"value\":\"%d\"},{\"name\":\"incidental\",\"value\":\"%d\"}]}]}";
             String message = String.format(format, 1940353, "NCG_00609_V13_Incidental9_41926.57625135", 13, 9);
             System.out.println(message);
-            //producer.send(session.createTextMessage(message));
+            // producer.send(session.createTextMessage(message));
         } catch (JMSException e) {
             e.printStackTrace();
         } finally {
