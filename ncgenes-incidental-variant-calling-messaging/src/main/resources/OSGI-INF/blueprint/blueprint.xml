@@ -10,6 +10,7 @@
   <bean id="NCGenesIncidentalVariantCallingMessageListener"
     class="edu.unc.mapseq.messaging.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingMessageListener">
     <property name="workflowBeanService" ref="NCGenesIncidentalVariantCallingWorkflowBeanService" />
+    <property name="workflowName" value="NCGenesIncidentalVariantCalling" />
   </bean>
 
   <bean id="NCGenesIncidentalVariantCallingMessageService"
