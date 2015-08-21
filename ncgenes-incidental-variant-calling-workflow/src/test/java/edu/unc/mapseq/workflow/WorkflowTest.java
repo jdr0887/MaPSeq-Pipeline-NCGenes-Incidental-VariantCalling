@@ -12,8 +12,7 @@ import org.renci.jlrm.condor.CondorJob;
 import org.renci.jlrm.condor.CondorJobEdge;
 import org.renci.jlrm.condor.ext.CondorDOTExporter;
 
-import edu.unc.mapseq.module.core.CatCLI;
-import edu.unc.mapseq.module.core.EchoCLI;
+import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class WorkflowTest {
@@ -28,18 +27,10 @@ public class WorkflowTest {
 
         try {
             // new job
-            CondorJob helloJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
-            graph.addVertex(helloJob);
+            CondorJob gatkUnifiedGenotyperJob = WorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class,
+                    null).build();
+            graph.addVertex(gatkUnifiedGenotyperJob);
 
-            // new job
-            CondorJob worldJob = WorkflowJobFactory.createJob(++count, EchoCLI.class, null).build();
-            graph.addVertex(worldJob);
-
-            // new job
-            CondorJob catJob = WorkflowJobFactory.createJob(++count, CatCLI.class, null).build();
-            graph.addVertex(catJob);
-            graph.addEdge(helloJob, catJob);
-            graph.addEdge(worldJob, catJob);
         } catch (WorkflowException e1) {
             e1.printStackTrace();
         }
