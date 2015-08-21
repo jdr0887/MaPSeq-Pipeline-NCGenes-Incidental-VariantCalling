@@ -1,0 +1,5 @@
+edu.unc.mapseq.commands.ncgenes.incidental.variantcalling
+edu.unc.mapseq.commons.ncgenes.incidental.variantcalling
+edu.unc.mapseq.executor.ncgenes.incidental.variantcalling
+edu.unc.mapseq.messaging.ncgenes.incidental.variantcalling
+edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling
