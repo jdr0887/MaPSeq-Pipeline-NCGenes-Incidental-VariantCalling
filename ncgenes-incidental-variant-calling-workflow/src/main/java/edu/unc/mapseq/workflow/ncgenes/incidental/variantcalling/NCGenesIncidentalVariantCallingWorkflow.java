@@ -123,9 +123,19 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService()
-                    .getMaPSeqDAOBean(), fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM,
-                    ncgenesWorkflow.getId());
+            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(
+                    getWorkflowBeanService().getMaPSeqDAOBean(), fileDataSet, PicardAddOrReplaceReadGroups.class,
+                    MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
+
+            if (bamFile == null) {
+                File ncgenesDirectory = new File(sample.getOutputDirectory(), "NCGenes");
+                for (File file : ncgenesDirectory.listFiles()) {
+                    if (file.getName().endsWith(".fixed-rg.bam")) {
+                        bamFile = file;
+                        break;
+                    }
+                }
+            }
 
             if (bamFile == null) {
                 logger.error("bam file to process was not found");
@@ -136,15 +146,15 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
                 // create graph content here
                 // output variable matches
-                File gatkTableRecalibrationOut = new File(bamFile.getParentFile(), bamFile.getName().replace(".bam",
-                        ".deduped.realign.fixmate.recal.bam"));
+                File gatkTableRecalibrationOut = new File(bamFile.getParentFile(),
+                        bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam"));
 
                 // new job
                 CondorJobBuilder builder = WorkflowJobFactory
                         .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId())
                         .siteName(siteName).numberOfProcessors(4);
-                File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
-                        ".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
+                File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName()
+                        .replace(".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
                 File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
                         .replace(".bam", String.format(".incidental-%s.v-%s.metrics", incidental, version)));
                 builder.addArgument(GATKUnifiedGenotyperCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
