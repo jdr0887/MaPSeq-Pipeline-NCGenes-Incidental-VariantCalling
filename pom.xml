@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-incidental-variant-calling</artifactId>
-  <version>0.5.46-SNAPSHOT</version>
+  <version>0.5.45-SNAPSHOT</version>
   <packaging>pom</packaging>
   <url>https://jdr0887.github.io/MaPSeq-Pipeline-NCGenes-Incidental-VariantCalling</url>
   <organization>
@@ -38,12 +38,12 @@
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-workflow</artifactId>
-      	<version>0.5.46-SNAPSHOT</version>
+      	<version>0.5.45-SNAPSHOT</version>
       </dependency>
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
       	<artifactId>ncgenes-incidental-variant-calling-commons</artifactId>
-      	<version>0.5.46-SNAPSHOT</version>
+      	<version>0.5.45-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
