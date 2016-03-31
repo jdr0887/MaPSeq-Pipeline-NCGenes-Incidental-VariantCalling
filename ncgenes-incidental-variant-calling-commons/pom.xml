@@ -21,9 +21,13 @@
       <artifactId>mapseq-dao-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>edu.unc.mapseq.distribution</groupId>
-      <artifactId>mapseq-modules</artifactId>
+      <groupId>edu.unc.mapseq.distribution.modules</groupId>
+      <artifactId>mapseq-module-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>edu.unc.mapseq.distribution.modules</groupId>
+      <artifactId>mapseq-module-sequencing</artifactId>
+    </dependency>    
     <dependency>
       <groupId>edu.unc.mapseq</groupId>
       <artifactId>mapseq-workflow-api</artifactId>

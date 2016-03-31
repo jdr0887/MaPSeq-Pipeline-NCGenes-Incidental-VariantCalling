@@ -11,18 +11,21 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.AbstractAction;
+import org.apache.karaf.shell.api.action.Action;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
-import edu.unc.mapseq.dao.MaPSeqDAOBean;
+import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
 @Command(scope = "ncgenes-incidental-variantcalling", name = "run-workflow", description = "Run NCGenes Incidental Variant Calling Workflow")
-public class NCGenesIncidentalVariantCallingRunWorkflowAction extends AbstractAction {
+@Service
+public class NCGenesIncidentalVariantCallingRunWorkflowAction implements Action {
 
     @Argument(index = 0, name = "workflowRunName", description = "WorkflowRun.name", required = true, multiValued = false)
     private String workflowRunName;
@@ -30,8 +33,10 @@ public class NCGenesIncidentalVariantCallingRunWorkflowAction extends AbstractAc
     @Argument(index = 1, name = "sampleId", description = "sampleId", required = true, multiValued = false)
     private Long sampleId;
 
-    private MaPSeqDAOBean maPSeqDAOBean;
+    @Reference
+    private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
+    @Reference
     private MaPSeqConfigurationService maPSeqConfigurationService;
 
     public NCGenesIncidentalVariantCallingRunWorkflowAction() {
@@ -39,10 +44,10 @@ public class NCGenesIncidentalVariantCallingRunWorkflowAction extends AbstractAc
     }
 
     @Override
-    public Object doExecute() {
+    public Object execute() {
 
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616",
-                maPSeqConfigurationService.getWebServiceHost("localhost")));
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
+                String.format("nio://%s:61616", maPSeqConfigurationService.getWebServiceHost("localhost")));
 
         Connection connection = null;
         Session session = null;
@@ -108,22 +113,6 @@ public class NCGenesIncidentalVariantCallingRunWorkflowAction extends AbstractAc
 
     public void setWorkflowRunName(String workflowRunName) {
         this.workflowRunName = workflowRunName;
-    }
-
-    public MaPSeqDAOBean getMaPSeqDAOBean() {
-        return maPSeqDAOBean;
-    }
-
-    public void setMaPSeqDAOBean(MaPSeqDAOBean maPSeqDAOBean) {
-        this.maPSeqDAOBean = maPSeqDAOBean;
-    }
-
-    public MaPSeqConfigurationService getMaPSeqConfigurationService() {
-        return maPSeqConfigurationService;
-    }
-
-    public void setMaPSeqConfigurationService(MaPSeqConfigurationService maPSeqConfigurationService) {
-        this.maPSeqConfigurationService = maPSeqConfigurationService;
     }
 
 }

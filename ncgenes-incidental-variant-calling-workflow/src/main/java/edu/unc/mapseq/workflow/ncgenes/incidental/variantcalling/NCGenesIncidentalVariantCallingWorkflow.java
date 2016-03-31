@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.incidental.variantcalling.RegisterToIRODSRunnable;
 import edu.unc.mapseq.config.RunModeType;
-import edu.unc.mapseq.dao.MaPSeqDAOBean;
+import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.WorkflowDAO;
 import edu.unc.mapseq.dao.model.Attribute;
@@ -29,18 +29,18 @@ import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
-import edu.unc.mapseq.module.gatk.GATKDownsamplingType;
-import edu.unc.mapseq.module.gatk.GATKPhoneHomeType;
-import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
-import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
+import edu.unc.mapseq.module.sequencing.gatk.GATKDownsamplingType;
+import edu.unc.mapseq.module.sequencing.gatk.GATKPhoneHomeType;
+import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
+import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
+import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
-import edu.unc.mapseq.workflow.impl.WorkflowUtil;
 
 public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkflow {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflow.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflow.class);
 
     public NCGenesIncidentalVariantCallingWorkflow() {
         super();
@@ -53,8 +53,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
     @Override
     public String getVersion() {
-        ResourceBundle bundle = ResourceBundle
-                .getBundle("edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow");
+        ResourceBundle bundle = ResourceBundle.getBundle("edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow");
         String version = bundle.getString("version");
         return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
     }
@@ -63,8 +62,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
     public Graph<CondorJob, CondorJobEdge> createGraph() throws WorkflowException {
         logger.info("ENTERING createGraph()");
 
-        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(
-                CondorJobEdge.class);
+        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(CondorJobEdge.class);
 
         int count = 0;
         // will come over from active mq JSON request
@@ -78,12 +76,12 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
         String knownVCF = getWorkflowBeanService().getAttributes().get("knownVCF");
         String referenceSequence = getWorkflowBeanService().getAttributes().get("referenceSequence");
 
-        MaPSeqDAOBean daoBean = getWorkflowBeanService().getMaPSeqDAOBean();
+        MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
         WorkflowDAO workflowDAO = daoBean.getWorkflowDAO();
 
         Workflow ncgenesWorkflow = null;
         try {
-            ncgenesWorkflow = workflowDAO.findByName("NCGenes").get(0);
+            ncgenesWorkflow = workflowDAO.findByName("NCGenesBaseline").get(0);
         } catch (MaPSeqDAOException e1) {
             e1.printStackTrace();
         }
@@ -123,9 +121,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(
-                    getWorkflowBeanService().getMaPSeqDAOBean(), fileDataSet, PicardAddOrReplaceReadGroups.class,
-                    MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
+            File bamFile = SampleWorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+                    fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
                 File ncgenesDirectory = new File(sample.getOutputDirectory(), "NCGenes");
@@ -151,24 +148,22 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
                 // new job
                 CondorJobBuilder builder = WorkflowJobFactory
-                        .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId())
-                        .siteName(siteName).numberOfProcessors(4);
-                File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName()
-                        .replace(".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
-                File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
-                        .replace(".bam", String.format(".incidental-%s.v-%s.metrics", incidental, version)));
+                        .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                        .numberOfProcessors(4);
+                File gatkUnifiedGenotyperOut = new File(outputDirectory,
+                        gatkTableRecalibrationOut.getName().replace(".bam", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
+                File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam",
+                        String.format(".incidental-%s.v-%s.metrics", incidental, version)));
                 builder.addArgument(GATKUnifiedGenotyperCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
                         .addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLINGTYPE, GATKDownsamplingType.NONE.toString())
                         .addArgument(GATKUnifiedGenotyperCLI.REFERENCESEQUENCE, referenceSequence)
-                        .addArgument(GATKUnifiedGenotyperCLI.DBSNP, knownVCF)
-                        .addArgument(GATKUnifiedGenotyperCLI.STANDCALLCONF, "30")
+                        .addArgument(GATKUnifiedGenotyperCLI.DBSNP, knownVCF).addArgument(GATKUnifiedGenotyperCLI.STANDCALLCONF, "30")
                         .addArgument(GATKUnifiedGenotyperCLI.STANDEMITCONF, "0")
                         .addArgument(GATKUnifiedGenotyperCLI.GENOTYPELIKELIHOODSMODEL, "BOTH")
                         .addArgument(GATKUnifiedGenotyperCLI.INPUTFILE, gatkTableRecalibrationOut.getAbsolutePath())
                         .addArgument(GATKUnifiedGenotyperCLI.NUMTHREADS, "4")
                         .addArgument(GATKUnifiedGenotyperCLI.OUT, gatkUnifiedGenotyperOut.getAbsolutePath())
-                        .addArgument(GATKUnifiedGenotyperCLI.INTERVALS,
-                                intervalListByIncidentalAndVersionFile.getAbsolutePath())
+                        .addArgument(GATKUnifiedGenotyperCLI.INTERVALS, intervalListByIncidentalAndVersionFile.getAbsolutePath())
                         .addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES")
                         .addArgument(GATKUnifiedGenotyperCLI.METRICS, gatkUnifiedGenotyperMetrics.getAbsolutePath())
                         .addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLETOCOVERAGE, "250")
@@ -228,7 +223,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
             }
 
             RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable();
-            runnable.setMapseqDAOBean(getWorkflowBeanService().getMaPSeqDAOBean());
+            runnable.setMaPSeqDAOBeanService(getWorkflowBeanService().getMaPSeqDAOBeanService());
             runnable.setRunMode(runMode);
             runnable.setSampleId(sample.getId());
             runnable.setIncidental(incidental);

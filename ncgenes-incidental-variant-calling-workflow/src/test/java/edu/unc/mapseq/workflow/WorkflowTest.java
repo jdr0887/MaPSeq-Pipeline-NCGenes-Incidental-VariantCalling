@@ -12,7 +12,7 @@ import org.renci.jlrm.condor.CondorJob;
 import org.renci.jlrm.condor.CondorJobEdge;
 import org.renci.jlrm.condor.ext.CondorDOTExporter;
 
-import edu.unc.mapseq.module.gatk.GATKUnifiedGenotyperCLI;
+import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class WorkflowTest {
@@ -20,15 +20,13 @@ public class WorkflowTest {
     @Test
     public void createDot() {
 
-        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(
-                CondorJobEdge.class);
+        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(CondorJobEdge.class);
 
         int count = 0;
 
         try {
             // new job
-            CondorJob gatkUnifiedGenotyperJob = WorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class,
-                    null).build();
+            CondorJob gatkUnifiedGenotyperJob = WorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).build();
             graph.addVertex(gatkUnifiedGenotyperJob);
 
         } catch (WorkflowException e1) {
@@ -49,8 +47,8 @@ public class WorkflowTest {
             }
         };
 
-        CondorDOTExporter<CondorJob, CondorJobEdge> dotExporter = new CondorDOTExporter<CondorJob, CondorJobEdge>(
-                vnpId, vnpLabel, null, null, null, null);
+        CondorDOTExporter<CondorJob, CondorJobEdge> dotExporter = new CondorDOTExporter<CondorJob, CondorJobEdge>(vnpId, vnpLabel, null,
+                null, null, null);
         File srcSiteResourcesImagesDir = new File("../src/site/resources/images");
         if (!srcSiteResourcesImagesDir.exists()) {
             srcSiteResourcesImagesDir.mkdirs();

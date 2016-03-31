@@ -17,22 +17,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.config.RunModeType;
-import edu.unc.mapseq.dao.MaPSeqDAOBean;
+import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.SampleDAO;
 import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
-import edu.unc.mapseq.module.picard.PicardAddOrReplaceReadGroups;
+import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.impl.IRODSBean;
-import edu.unc.mapseq.workflow.impl.WorkflowUtil;
+import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
 
 public class RegisterToIRODSRunnable implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(RegisterToIRODSRunnable.class);
 
-    private MaPSeqDAOBean mapseqDAOBean;
+    private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
     private RunModeType runMode;
 
@@ -50,7 +50,7 @@ public class RegisterToIRODSRunnable implements Runnable {
     public void run() {
 
         Set<Sample> sampleSet = new HashSet<Sample>();
-        SampleDAO sampleDAO = mapseqDAOBean.getSampleDAO();
+        SampleDAO sampleDAO = maPSeqDAOBeanService.getSampleDAO();
 
         if (sampleId != null) {
             try {
@@ -63,7 +63,7 @@ public class RegisterToIRODSRunnable implements Runnable {
 
         Workflow ncgenesWorkflow = null;
         try {
-            ncgenesWorkflow = mapseqDAOBean.getWorkflowDAO().findByName("NCGenes").get(0);
+            ncgenesWorkflow = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline").get(0);
         } catch (MaPSeqDAOException e1) {
             e1.printStackTrace();
         }
@@ -74,7 +74,7 @@ public class RegisterToIRODSRunnable implements Runnable {
                 continue;
             }
 
-            File outputDirectory = new File(sample.getOutputDirectory(), "NCGenes");
+            File outputDirectory = new File(sample.getOutputDirectory(), "NCGenesBaseline");
             File tmpDir = new File(outputDirectory, "tmp");
             if (!tmpDir.exists()) {
                 tmpDir.mkdirs();
@@ -87,7 +87,7 @@ public class RegisterToIRODSRunnable implements Runnable {
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(mapseqDAOBean, fileDataSet,
+            File bamFile = SampleWorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(maPSeqDAOBeanService, fileDataSet,
                     PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
@@ -121,12 +121,12 @@ public class RegisterToIRODSRunnable implements Runnable {
             switch (runMode) {
                 case DEV:
                 case STAGING:
-                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/%s/ncgenes/%s",
+                    ncgenesIRODSDirectory = String.format("/MedGenZone/home/medgenuser/sequence_data/%s/ncgenes/%s",
                             runMode.toString().toLowerCase(), participantId);
                     break;
                 case PROD:
                 default:
-                    ncgenesIRODSDirectory = String.format("/genomicsDataGridZone/sequence_data/ncgenes/%s", participantId);
+                    ncgenesIRODSDirectory = String.format("/MedGenZone/home/medgenuser/sequence_data/ncgenes/%s", participantId);
                     break;
             }
 
@@ -233,12 +233,12 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     }
 
-    public MaPSeqDAOBean getMapseqDAOBean() {
-        return mapseqDAOBean;
+    public MaPSeqDAOBeanService getMaPSeqDAOBeanService() {
+        return maPSeqDAOBeanService;
     }
 
-    public void setMapseqDAOBean(MaPSeqDAOBean mapseqDAOBean) {
-        this.mapseqDAOBean = mapseqDAOBean;
+    public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
     }
 
     public RunModeType getRunMode() {
