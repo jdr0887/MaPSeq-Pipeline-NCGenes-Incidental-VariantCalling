@@ -13,7 +13,7 @@ import org.renci.jlrm.condor.CondorJobEdge;
 import org.renci.jlrm.condor.ext.CondorDOTExporter;
 
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
-import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
 
 public class WorkflowTest {
 
@@ -26,7 +26,7 @@ public class WorkflowTest {
 
         try {
             // new job
-            CondorJob gatkUnifiedGenotyperJob = WorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).build();
+            CondorJob gatkUnifiedGenotyperJob = SequencingWorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).build();
             graph.addVertex(gatkUnifiedGenotyperJob);
 
         } catch (WorkflowException e1) {
