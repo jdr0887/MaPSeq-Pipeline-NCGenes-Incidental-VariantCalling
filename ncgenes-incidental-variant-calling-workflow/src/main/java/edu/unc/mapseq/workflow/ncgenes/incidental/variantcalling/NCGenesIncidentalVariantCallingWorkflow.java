@@ -34,11 +34,11 @@ import edu.unc.mapseq.module.sequencing.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
-import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
-import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
+import edu.unc.mapseq.workflow.core.WorkflowUtil;
+import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
 
-public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkflow {
+public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflow.class);
 
@@ -121,7 +121,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = SampleWorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService().getMaPSeqDAOBeanService(),
                     fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
@@ -147,7 +147,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSampleWorkf
                         bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam"));
 
                 // new job
-                CondorJobBuilder builder = WorkflowJobFactory
+                CondorJobBuilder builder = SequencingWorkflowJobFactory
                         .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
                         .numberOfProcessors(4);
                 File gatkUnifiedGenotyperOut = new File(outputDirectory,
