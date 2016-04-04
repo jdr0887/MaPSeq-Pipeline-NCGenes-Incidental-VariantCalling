@@ -25,8 +25,8 @@ import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
-import edu.unc.mapseq.workflow.impl.IRODSBean;
-import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
+import edu.unc.mapseq.workflow.core.WorkflowUtil;
+import edu.unc.mapseq.workflow.sequencing.IRODSBean;
 
 public class RegisterToIRODSRunnable implements Runnable {
 
@@ -87,7 +87,7 @@ public class RegisterToIRODSRunnable implements Runnable {
 
             Set<FileData> fileDataSet = sample.getFileDatas();
 
-            File bamFile = SampleWorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(maPSeqDAOBeanService, fileDataSet,
+            File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(maPSeqDAOBeanService, fileDataSet,
                     PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
