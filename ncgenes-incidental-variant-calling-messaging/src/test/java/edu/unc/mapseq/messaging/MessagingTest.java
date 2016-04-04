@@ -16,8 +16,7 @@ public class MessagingTest {
     public void testQueue() {
         // String host = "localhost";
         String host = "152.19.198.146";
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616",
-                host));
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616", host));
         Connection connection = null;
         Session session = null;
         try {

@@ -26,7 +26,8 @@ public class WorkflowTest {
 
         try {
             // new job
-            CondorJob gatkUnifiedGenotyperJob = SequencingWorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).build();
+            CondorJob gatkUnifiedGenotyperJob = SequencingWorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null)
+                    .build();
             graph.addVertex(gatkUnifiedGenotyperJob);
 
         } catch (WorkflowException e1) {
