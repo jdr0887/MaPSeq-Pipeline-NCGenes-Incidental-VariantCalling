@@ -16,11 +16,11 @@
   <reference id="maPSeqConfigurationService" interface="edu.unc.mapseq.config.MaPSeqConfigurationService" />
   <reference id="maPSeqDAOBeanService" interface="edu.unc.mapseq.dao.MaPSeqDAOBeanService" />
 
-  <bean id="NCGenesIncidentalVariantCallingWorkflowBeanService" class="edu.unc.mapseq.workflow.impl.WorkflowBeanServiceImpl">
+  <bean id="NCGenesIncidentalVariantCallingWorkflowBeanService" class="edu.unc.mapseq.workflow.core.WorkflowBeanServiceImpl">
     <property name="corePoolSize" value="${corePoolSize}" />
     <property name="maxPoolSize" value="${maxPoolSize}" />
     <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
-    <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
+    <property name="maPSeqDAOBeanService" ref="maPSeqDAOBeanService" />
     <property name="attributes">
       <map>
         <entry key="referenceSequence" value="${referenceSequence}" />
