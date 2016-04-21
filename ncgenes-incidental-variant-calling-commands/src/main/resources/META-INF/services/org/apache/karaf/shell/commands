@@ -1,3 +1,4 @@
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.RegisterToIRODSAction
+edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.PersistFilesAction
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingRunWorkflowAction
 
