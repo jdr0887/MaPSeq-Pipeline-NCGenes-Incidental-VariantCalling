@@ -125,7 +125,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                     fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
-                File ncgenesDirectory = new File(sample.getOutputDirectory(), "NCGenes");
+                File ncgenesDirectory = new File(sample.getOutputDirectory(), "NCGenesBaseline");
                 for (File file : ncgenesDirectory.listFiles()) {
                     if (file.getName().endsWith(".fixed-rg.bam")) {
                         bamFile = file;
