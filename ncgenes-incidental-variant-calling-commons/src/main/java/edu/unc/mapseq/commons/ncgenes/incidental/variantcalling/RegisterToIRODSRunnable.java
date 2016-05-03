@@ -30,7 +30,7 @@ import edu.unc.mapseq.workflow.sequencing.IRODSBean;
 
 public class RegisterToIRODSRunnable implements Runnable {
 
-    private final Logger logger = LoggerFactory.getLogger(RegisterToIRODSRunnable.class);
+    private static final Logger logger = LoggerFactory.getLogger(RegisterToIRODSRunnable.class);
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
@@ -131,10 +131,11 @@ public class RegisterToIRODSRunnable implements Runnable {
             CommandInput commandInput = new CommandInput();
             commandInput.setExitImmediately(Boolean.FALSE);
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imkdir -p %s%n", ncgenesIRODSDirectory));
-            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -C %s Project NCGENES%n", ncgenesIRODSDirectory));
-            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -C %s ParticipantID %s NCGENES%n", ncgenesIRODSDirectory,
-                    participantId));
+            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imkdir -p %s%n", ncgenesIRODSDirectory));
+            sb.append(
+                    String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -C %s Project NCGENES%n", ncgenesIRODSDirectory));
+            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -C %s ParticipantID %s NCGENES%n",
+                    ncgenesIRODSDirectory, participantId));
             commandInput.setCommand(sb.toString());
             commandInput.setWorkDir(tmpDir);
             commandInputList.add(commandInput);
@@ -180,28 +181,29 @@ public class RegisterToIRODSRunnable implements Runnable {
                 commandInput = new CommandInput();
                 commandInput.setExitImmediately(Boolean.FALSE);
                 sb = new StringBuilder();
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -d %s/%s ParticipantID %s NCGENES%n",
+                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s ParticipantID %s NCGENES%n",
                         ncgenesIRODSDirectory, f.getName(), participantId));
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -d %s/%s FileType %s NCGENES%n", ncgenesIRODSDirectory,
-                        f.getName(), bean.getType()));
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -d %s/%s System %s NCGENES%n", ncgenesIRODSDirectory,
-                        f.getName(), StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
+                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s FileType %s NCGENES%n",
+                        ncgenesIRODSDirectory, f.getName(), bean.getType()));
+                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s System %s NCGENES%n",
+                        ncgenesIRODSDirectory, f.getName(), StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
                 commandInput.setCommand(sb.toString());
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
 
                 if (StringUtils.isNotEmpty(incidental)) {
                     commandInput = new CommandInput();
-                    commandInput.setCommand(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -d %s/%s IncidentalID %s NCGENES",
-                            ncgenesIRODSDirectory, bean.getFile().getName(), incidental));
+                    commandInput.setCommand(
+                            String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s IncidentalID %s NCGENES",
+                                    ncgenesIRODSDirectory, bean.getFile().getName(), incidental));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
                 }
 
                 if (StringUtils.isNotEmpty(version)) {
                     commandInput = new CommandInput();
-                    commandInput
-                            .setCommand(String.format("$NCGENESINCIDENTALVARIANTCALLING/imeta add -d %s/%s IncidentalVersion %s NCGENES",
+                    commandInput.setCommand(
+                            String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s IncidentalVersion %s NCGENES",
                                     ncgenesIRODSDirectory, bean.getFile().getName(), version));
                     commandInput.setWorkDir(tmpDir);
                     commandInputList.add(commandInput);
