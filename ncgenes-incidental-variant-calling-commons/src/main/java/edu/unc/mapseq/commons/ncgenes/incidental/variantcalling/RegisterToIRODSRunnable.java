@@ -168,9 +168,9 @@ public class RegisterToIRODSRunnable implements Runnable {
                 commandInput.setExitImmediately(Boolean.FALSE);
 
                 StringBuilder registerCommandSB = new StringBuilder();
-                String registrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING/ireg -f %s %s/%s",
+                String registrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/ireg -f %s %s/%s",
                         bean.getFile().getAbsolutePath(), ncgenesIRODSDirectory, bean.getFile().getName());
-                String deRegistrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING/irm -U %s/%s", ncgenesIRODSDirectory,
+                String deRegistrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/irm -U %s/%s", ncgenesIRODSDirectory,
                         bean.getFile().getName());
                 registerCommandSB.append(registrationCommand).append("\n");
                 registerCommandSB.append(String.format("if [ $? != 0 ]; then %s; %s; fi%n", deRegistrationCommand, registrationCommand));
