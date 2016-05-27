@@ -14,7 +14,7 @@
 
   <bean id="task" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingWorkflowExecutorTask">
     <property name="workflowBeanService" ref="NCGenesIncidentalVariantCallingWorkflowBeanService" />
-    <property name="workflowName" ref="NCGenesIncidentalVariantCalling" />
+    <property name="workflowName" value="NCGenesIncidentalVariantCalling" />
   </bean>
 
   <bean id="NCGenesIncidentalVariantCallingWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.incidental.variantcalling.NCGenesIncidentalVariantCallingWorkflowExecutorService"
