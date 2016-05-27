@@ -26,6 +26,8 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
 
     private WorkflowBeanService workflowBeanService;
 
+    private String workflowName;
+
     public NCGenesIncidentalVariantCallingWorkflowExecutorTask() {
         super();
     }
@@ -47,12 +49,19 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
         WorkflowRunAttemptDAO workflowRunAttemptDAO = this.workflowBeanService.getMaPSeqDAOBeanService().getWorkflowRunAttemptDAO();
 
         try {
-            List<Workflow> workflowList = workflowDAO.findByName("NCGenesIncidentalVariantCalling");
+            Workflow workflow = null;
+            List<Workflow> workflowList = workflowDAO.findByName(getWorkflowName());
             if (CollectionUtils.isEmpty(workflowList)) {
-                logger.error("No Workflow Found: {}", "NCGenesIncidentalVariantCalling");
+                workflow = new Workflow(getWorkflowName());
+                workflow.setId(workflowDAO.save(workflow));
+            } else {
+                workflow = workflowList.get(0);
+            }
+
+            if (workflow == null) {
+                logger.error("Could not find or create {} workflow", getWorkflowName());
                 return;
             }
-            Workflow workflow = workflowList.get(0);
             List<WorkflowRunAttempt> attempts = workflowRunAttemptDAO.findEnqueued(workflow.getId());
             if (CollectionUtils.isNotEmpty(attempts)) {
                 logger.info("dequeuing {} WorkflowRunAttempt", attempts.size());
@@ -75,6 +84,14 @@ public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTa
             e.printStackTrace();
         }
 
+    }
+
+    public String getWorkflowName() {
+        return workflowName;
+    }
+
+    public void setWorkflowName(String workflowName) {
+        this.workflowName = workflowName;
     }
 
     public WorkflowBeanService getWorkflowBeanService() {
