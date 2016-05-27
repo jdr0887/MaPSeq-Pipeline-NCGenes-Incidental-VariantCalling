@@ -18,7 +18,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 @Service
 public class PersistFilesAction implements Action {
 
-    private final Logger logger = LoggerFactory.getLogger(PersistFilesAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(PersistFilesAction.class);
 
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;

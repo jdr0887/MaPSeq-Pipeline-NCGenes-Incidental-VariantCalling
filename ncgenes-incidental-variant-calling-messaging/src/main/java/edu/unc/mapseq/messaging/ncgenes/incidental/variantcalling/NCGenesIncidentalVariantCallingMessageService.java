@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class NCGenesIncidentalVariantCallingMessageService {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingMessageService.class);
 
     private ConnectionFactory connectionFactory;
 

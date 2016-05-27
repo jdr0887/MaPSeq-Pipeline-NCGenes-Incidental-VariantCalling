@@ -20,7 +20,7 @@ import edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling.NCGenesIncident
 
 public class NCGenesIncidentalVariantCallingWorkflowExecutorTask extends TimerTask {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflowExecutorTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesIncidentalVariantCallingWorkflowExecutorTask.class);
 
     private final WorkflowTPE threadPoolExecutor = new WorkflowTPE();
 
