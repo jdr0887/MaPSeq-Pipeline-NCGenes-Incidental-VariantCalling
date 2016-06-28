@@ -2,12 +2,13 @@ package edu.unc.mapseq.commons.ncgenes.incidental.variantcalling;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.renci.common.exec.BashExecutor;
 import org.renci.common.exec.CommandInput;
 import org.renci.common.exec.CommandOutput;
@@ -16,7 +17,6 @@ import org.renci.common.exec.ExecutorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.config.RunModeType;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.SampleDAO;
@@ -24,7 +24,9 @@ import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyper;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
+import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
 import edu.unc.mapseq.workflow.sequencing.IRODSBean;
 
@@ -34,16 +36,22 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private RunModeType runMode;
-
     private String version;
 
     private String incidental;
 
     private Long sampleId;
 
-    public RegisterToIRODSRunnable() {
+    private SystemType system;
+
+    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, String version, String incidental, Long sampleId,
+            SystemType system) {
         super();
+        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+        this.version = version;
+        this.incidental = incidental;
+        this.sampleId = sampleId;
+        this.system = system;
     }
 
     @Override
@@ -110,19 +118,7 @@ public class RegisterToIRODSRunnable implements Runnable {
             int idx = sample.getName().lastIndexOf("-");
             String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
-            String ncgenesIRODSDirectory;
-
-            switch (runMode) {
-                case DEV:
-                case STAGING:
-                    ncgenesIRODSDirectory = String.format("/MedGenZone/sequence_data/%s/ncgenes/%s", runMode.toString().toLowerCase(),
-                            participantId);
-                    break;
-                case PROD:
-                default:
-                    ncgenesIRODSDirectory = String.format("/MedGenZone/sequence_data/ncgenes/%s", participantId);
-                    break;
-            }
+            String irodsDirectory = String.format("/MedGenZone/sequence_data/ncgenes/%s", participantId);
 
             CommandOutput commandOutput = null;
 
@@ -131,11 +127,9 @@ public class RegisterToIRODSRunnable implements Runnable {
             CommandInput commandInput = new CommandInput();
             commandInput.setExitImmediately(Boolean.FALSE);
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imkdir -p %s%n", ncgenesIRODSDirectory));
-            sb.append(
-                    String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -C %s Project NCGENES%n", ncgenesIRODSDirectory));
-            sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -C %s ParticipantID %s NCGENES%n",
-                    ncgenesIRODSDirectory, participantId));
+            sb.append(String.format("$IRODS_HOME/imkdir -p %s%n", irodsDirectory));
+            sb.append(String.format("$IRODS_HOME/imeta add -C %s Project NCGENES%n", irodsDirectory));
+            sb.append(String.format("$IRODS_HOME/imeta add -C %s ParticipantID %s NCGENES%n", irodsDirectory, participantId));
             commandInput.setCommand(sb.toString());
             commandInput.setWorkDir(tmpDir);
             commandInputList.add(commandInput);
@@ -144,17 +138,32 @@ public class RegisterToIRODSRunnable implements Runnable {
             String gatkTableRecalibrationOut = bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam");
 
             List<IRODSBean> files2RegisterToIRODS = new LinkedList<IRODSBean>();
+
+            List<ImmutablePair<String, String>> attributeList = Arrays.asList(
+                    new ImmutablePair<String, String>("ParticipantId", participantId),
+                    new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
+                    new ImmutablePair<String, String>("MaPSeqWorkflowName", "NCGenesIncidentalVariantCalling"),
+                    new ImmutablePair<String, String>("MaPSeqStudyName", sample.getStudy().getName()),
+                    new ImmutablePair<String, String>("MaPSeqSampleId", sample.getId().toString()),
+                    new ImmutablePair<String, String>("MaPSeqSystem", system.getValue()),
+                    new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()),
+                    new ImmutablePair<String, String>("IncidentalID", incidental),
+                    new ImmutablePair<String, String>("IncidentalVersion", version));
+
             File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam", ".vcf"));
-            File gatkApplyRecalibrationOut = new File(outputDirectory,
+            File incidentalVcf = new File(outputDirectory,
                     filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
 
-            if (!gatkApplyRecalibrationOut.exists()) {
+            if (!incidentalVcf.exists()) {
                 outputDirectory = new File(sample.getOutputDirectory(), "NCGenesIncidentalVariantCalling");
-                gatkApplyRecalibrationOut = new File(outputDirectory,
+                incidentalVcf = new File(outputDirectory,
                         filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
             }
 
-            files2RegisterToIRODS.add(new IRODSBean(gatkApplyRecalibrationOut, "IncidentalVcf", version, incidental, runMode));
+            List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
+            attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", GATKUnifiedGenotyper.class.getSimpleName()));
+            attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_VCF.toString()));
+            files2RegisterToIRODS.add(new IRODSBean(incidentalVcf, attributeListWithJob));
 
             for (IRODSBean bean : files2RegisterToIRODS) {
 
@@ -168,10 +177,9 @@ public class RegisterToIRODSRunnable implements Runnable {
                 commandInput.setExitImmediately(Boolean.FALSE);
 
                 StringBuilder registerCommandSB = new StringBuilder();
-                String registrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/ireg -f %s %s/%s",
-                        bean.getFile().getAbsolutePath(), ncgenesIRODSDirectory, bean.getFile().getName());
-                String deRegistrationCommand = String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/irm -U %s/%s", ncgenesIRODSDirectory,
+                String registrationCommand = String.format("$IRODS_HOME/ireg -f %s %s/%s", bean.getFile().getAbsolutePath(), irodsDirectory,
                         bean.getFile().getName());
+                String deRegistrationCommand = String.format("$IRODS_HOME/irm -U %s/%s", irodsDirectory, bean.getFile().getName());
                 registerCommandSB.append(registrationCommand).append("\n");
                 registerCommandSB.append(String.format("if [ $? != 0 ]; then %s; %s; fi%n", deRegistrationCommand, registrationCommand));
                 commandInput.setCommand(registerCommandSB.toString());
@@ -181,33 +189,13 @@ public class RegisterToIRODSRunnable implements Runnable {
                 commandInput = new CommandInput();
                 commandInput.setExitImmediately(Boolean.FALSE);
                 sb = new StringBuilder();
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s ParticipantID %s NCGENES%n",
-                        ncgenesIRODSDirectory, f.getName(), participantId));
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s FileType %s NCGENES%n",
-                        ncgenesIRODSDirectory, f.getName(), bean.getType()));
-                sb.append(String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s System %s NCGENES%n",
-                        ncgenesIRODSDirectory, f.getName(), StringUtils.capitalize(bean.getRunMode().toString().toLowerCase())));
+                for (ImmutablePair<String, String> attribute : bean.getAttributes()) {
+                    sb.append(String.format("$IRODS_HOME/imeta add -d %s/%s %s %s NCGenes%n", irodsDirectory, bean.getFile().getName(),
+                            attribute.getLeft(), attribute.getRight()));
+                }
                 commandInput.setCommand(sb.toString());
                 commandInput.setWorkDir(tmpDir);
                 commandInputList.add(commandInput);
-
-                if (StringUtils.isNotEmpty(incidental)) {
-                    commandInput = new CommandInput();
-                    commandInput.setCommand(
-                            String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s IncidentalID %s NCGENES",
-                                    ncgenesIRODSDirectory, bean.getFile().getName(), incidental));
-                    commandInput.setWorkDir(tmpDir);
-                    commandInputList.add(commandInput);
-                }
-
-                if (StringUtils.isNotEmpty(version)) {
-                    commandInput = new CommandInput();
-                    commandInput.setCommand(
-                            String.format("$NCGENESINCIDENTALVARIANTCALLING_IRODS_HOME/imeta add -d %s/%s IncidentalVersion %s NCGENES",
-                                    ncgenesIRODSDirectory, bean.getFile().getName(), version));
-                    commandInput.setWorkDir(tmpDir);
-                    commandInputList.add(commandInput);
-                }
 
             }
 
@@ -237,14 +225,6 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public RunModeType getRunMode() {
-        return runMode;
-    }
-
-    public void setRunMode(RunModeType runMode) {
-        this.runMode = runMode;
     }
 
     public String getVersion() {
