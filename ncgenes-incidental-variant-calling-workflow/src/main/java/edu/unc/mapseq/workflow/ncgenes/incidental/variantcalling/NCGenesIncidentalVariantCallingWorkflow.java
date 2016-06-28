@@ -2,12 +2,11 @@ package edu.unc.mapseq.workflow.ncgenes.incidental.variantcalling;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -18,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.incidental.variantcalling.RegisterToIRODSRunnable;
-import edu.unc.mapseq.config.RunModeType;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.WorkflowDAO;
@@ -33,6 +31,7 @@ import edu.unc.mapseq.module.sequencing.gatk.GATKDownsamplingType;
 import edu.unc.mapseq.module.sequencing.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
+import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
@@ -52,10 +51,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
     }
 
     @Override
-    public String getVersion() {
-        ResourceBundle bundle = ResourceBundle.getBundle("edu/unc/mapseq/workflow/ncgenes/incidental/variantcalling/workflow");
-        String version = bundle.getString("version");
-        return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
+    public SystemType getSystem() {
+        return SystemType.PRODUCTION;
     }
 
     @Override
@@ -192,8 +189,6 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
 
         Set<Sample> sampleSet = getAggregatedSamples();
 
-        RunModeType runMode = getWorkflowBeanService().getMaPSeqConfigurationService().getRunMode();
-
         String version = null;
         String incidental = null;
 
@@ -214,26 +209,26 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
             }
         }
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService es = Executors.newSingleThreadExecutor();
 
-        for (Sample sample : sampleSet) {
+        try {
+            for (Sample sample : sampleSet) {
 
-            if ("Undetermined".equals(sample.getBarcode())) {
-                continue;
+                if ("Undetermined".equals(sample.getBarcode())) {
+                    continue;
+                }
+
+                RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(), version,
+                        incidental, sample.getId(), getSystem());
+                es.submit(runnable);
+
             }
 
-            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable();
-            runnable.setMaPSeqDAOBeanService(getWorkflowBeanService().getMaPSeqDAOBeanService());
-            runnable.setRunMode(runMode);
-            runnable.setSampleId(sample.getId());
-            runnable.setIncidental(incidental);
-            runnable.setVersion(version);
-            executorService.submit(runnable);
-
+            es.shutdown();
+            es.awaitTermination(1L, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        executorService.shutdown();
-
     }
 
 }
