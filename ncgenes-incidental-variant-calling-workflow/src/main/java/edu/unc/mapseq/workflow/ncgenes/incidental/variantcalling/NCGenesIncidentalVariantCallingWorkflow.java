@@ -31,11 +31,11 @@ import edu.unc.mapseq.module.sequencing.gatk.GATKDownsamplingType;
 import edu.unc.mapseq.module.sequencing.gatk.GATKPhoneHomeType;
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyperCLI;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
-import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingWorkflow {
 
@@ -43,16 +43,6 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
 
     public NCGenesIncidentalVariantCallingWorkflow() {
         super();
-    }
-
-    @Override
-    public String getName() {
-        return NCGenesIncidentalVariantCallingWorkflow.class.getSimpleName().replace("Workflow", "");
-    }
-
-    @Override
-    public SystemType getSystem() {
-        return SystemType.PRODUCTION;
     }
 
     @Override
@@ -108,7 +98,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                 }
             }
 
-            File outputDirectory = new File(sample.getOutputDirectory(), getName());
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample,
+                    getWorkflowRunAttempt().getWorkflowRun().getWorkflow());
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
@@ -122,7 +113,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                     fileDataSet, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
 
             if (bamFile == null) {
-                File ncgenesDirectory = new File(sample.getOutputDirectory(), "NCGenesBaseline");
+                File ncgenesDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, ncgenesWorkflow);
                 for (File file : ncgenesDirectory.listFiles()) {
                     if (file.getName().endsWith(".fixed-rg.bam")) {
                         bamFile = file;
@@ -218,8 +209,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                     continue;
                 }
 
-                RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(), version,
-                        incidental, sample.getId(), getSystem());
+                RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(), sample,
+                        workflowRun, version, incidental);
                 es.submit(runnable);
 
             }
