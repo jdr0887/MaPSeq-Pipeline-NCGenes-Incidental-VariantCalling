@@ -4,8 +4,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.karaf.shell.api.action.Action;
-import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.slf4j.Logger;
@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.incidental.variantcalling.RegisterToIRODSRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
-import edu.unc.mapseq.workflow.SystemType;
+import edu.unc.mapseq.dao.MaPSeqDAOException;
+import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRun;
 
 @Command(scope = "ncgenes-incidental-variantcalling", name = "register-to-irods", description = "Register to iRODS")
 @Service
@@ -24,14 +26,17 @@ public class RegisterToIRODSAction implements Action {
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    @Argument(index = 0, name = "sampleId", required = true, multiValued = false)
+    @Option(name = "--sampleId", required = true, multiValued = false)
     private Long sampleId;
 
-    @Argument(index = 1, name = "version", required = true, multiValued = false)
+    @Option(name = "--version", required = true, multiValued = false)
     private String version;
 
-    @Argument(index = 2, name = "incidental", required = true, multiValued = false)
+    @Option(name = "--incidental", required = true, multiValued = false)
     private String incidental;
+
+    @Option(name = "--workflowRunId", required = true, multiValued = false)
+    private Long workflowRunId;
 
     public RegisterToIRODSAction() {
         super();
@@ -41,10 +46,15 @@ public class RegisterToIRODSAction implements Action {
     public Object execute() {
         logger.debug("ENTERING execute()");
         ExecutorService es = Executors.newSingleThreadExecutor();
-        RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, version, incidental, sampleId,
-                SystemType.PRODUCTION);
-        es.submit(runnable);
-        es.shutdown();
+        try {
+            WorkflowRun workflowRun = maPSeqDAOBeanService.getWorkflowRunDAO().findById(workflowRunId);
+            Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
+            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, sample, workflowRun, version, incidental);
+            es.submit(runnable);
+            es.shutdown();
+        } catch (MaPSeqDAOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -70,6 +80,14 @@ public class RegisterToIRODSAction implements Action {
 
     public void setIncidental(String incidental) {
         this.incidental = incidental;
+    }
+
+    public Long getWorkflowRunId() {
+        return workflowRunId;
+    }
+
+    public void setWorkflowRunId(Long workflowRunId) {
+        this.workflowRunId = workflowRunId;
     }
 
 }
