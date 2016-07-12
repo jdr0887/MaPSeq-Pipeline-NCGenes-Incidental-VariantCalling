@@ -99,7 +99,9 @@ public class RegisterToIRODSRunnable implements Runnable {
         int idx = sample.getName().lastIndexOf("-");
         String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
-        String irodsDirectory = String.format("/MedGenZone/sequence_data/ncgenes/%s", participantId);
+        String irodsDirectory = String.format("/MedGenZone/%s/sequencing/ncgenes/analysis/%s/%s/%s/%s",
+                workflowRun.getWorkflow().getSystem().getValue(), sample.getFlowcell().getName(), sample.getName(),
+                workflowRun.getWorkflow().getName(), version);
 
         CommandOutput commandOutput = null;
 
