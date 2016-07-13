@@ -210,7 +210,7 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                 }
 
                 RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(), sample,
-                        workflowRun, version, incidental);
+                        version, incidental);
                 es.submit(runnable);
 
             }

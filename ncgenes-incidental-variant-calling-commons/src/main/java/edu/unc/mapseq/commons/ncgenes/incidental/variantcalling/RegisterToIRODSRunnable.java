@@ -22,7 +22,6 @@ import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
-import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyper;
 import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
@@ -37,18 +36,14 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     private Sample sample;
 
-    private WorkflowRun workflowRun;
-
     private String version;
 
     private String incidental;
 
-    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, Sample sample, WorkflowRun workflowRun, String version,
-            String incidental) {
+    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, Sample sample, String version, String incidental) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
         this.sample = sample;
-        this.workflowRun = workflowRun;
         this.version = version;
         this.incidental = incidental;
     }
@@ -56,14 +51,14 @@ public class RegisterToIRODSRunnable implements Runnable {
     @Override
     public void run() {
 
-        Workflow ncgenesWorkflow = null;
+        Workflow workflow = null;
         try {
-            ncgenesWorkflow = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline").get(0);
+            workflow = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesIncidentalVariantCalling").get(0);
         } catch (MaPSeqDAOException e1) {
             e1.printStackTrace();
         }
 
-        File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, ncgenesWorkflow);
+        File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
         File tmpDir = new File(outputDirectory, "tmp");
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();
@@ -77,10 +72,10 @@ public class RegisterToIRODSRunnable implements Runnable {
         Set<FileData> fileDataSet = sample.getFileDatas();
 
         File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(maPSeqDAOBeanService, fileDataSet,
-                PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ncgenesWorkflow.getId());
+                PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, workflow.getId());
 
         if (bamFile == null) {
-            File ncgenesDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, ncgenesWorkflow);
+            File ncgenesDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
             for (File file : ncgenesDirectory.listFiles()) {
                 if (file.getName().endsWith(".fixed-rg.bam")) {
                     bamFile = file;
@@ -100,8 +95,8 @@ public class RegisterToIRODSRunnable implements Runnable {
         String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
         String irodsDirectory = String.format("/MedGenZone/%s/sequencing/ncgenes/analysis/%s/L%03d_%s/%s/%s",
-                workflowRun.getWorkflow().getSystem().getValue(), sample.getFlowcell().getName(), sample.getLaneIndex(),
-                sample.getBarcode(), workflowRun.getWorkflow().getName(), version);
+                workflow.getSystem().getValue(), sample.getFlowcell().getName(), sample.getLaneIndex(), sample.getBarcode(),
+                workflow.getName(), version);
 
         CommandOutput commandOutput = null;
 
@@ -124,10 +119,10 @@ public class RegisterToIRODSRunnable implements Runnable {
 
         List<ImmutablePair<String, String>> attributeList = Arrays.asList(new ImmutablePair<String, String>("ParticipantId", participantId),
                 new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
-                new ImmutablePair<String, String>("MaPSeqWorkflowName", workflowRun.getWorkflow().getName()),
+                new ImmutablePair<String, String>("MaPSeqWorkflowName", workflow.getName()),
                 new ImmutablePair<String, String>("MaPSeqStudyName", sample.getStudy().getName()),
                 new ImmutablePair<String, String>("MaPSeqSampleId", sample.getId().toString()),
-                new ImmutablePair<String, String>("MaPSeqSystem", workflowRun.getWorkflow().getSystem().getValue()),
+                new ImmutablePair<String, String>("MaPSeqSystem", workflow.getSystem().getValue()),
                 new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()),
                 new ImmutablePair<String, String>("IncidentalID", incidental),
                 new ImmutablePair<String, String>("IncidentalVersion", version));
@@ -137,7 +132,7 @@ public class RegisterToIRODSRunnable implements Runnable {
                 filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
 
         if (!incidentalVcf.exists()) {
-            outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+            outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
             incidentalVcf = new File(outputDirectory,
                     filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
         }
@@ -213,14 +208,6 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     public void setSample(Sample sample) {
         this.sample = sample;
-    }
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
     }
 
     public String getVersion() {
