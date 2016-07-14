@@ -30,8 +30,8 @@ public class AssertExpectedOutputFilesExistInIRODSAction implements Action {
     @Option(name = "--version", required = true, multiValued = false)
     private String version;
 
-    @Option(name = "--dx", required = true, multiValued = false)
-    private String dx;
+    @Option(name = "--incidental", required = true, multiValued = false)
+    private String incidental;
 
     @Override
     public Object execute() throws Exception {
@@ -39,7 +39,7 @@ public class AssertExpectedOutputFilesExistInIRODSAction implements Action {
         ExecutorService es = Executors.newSingleThreadExecutor();
         Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
         AssertExpectedOutputFilesExistInIRODSRunnable runnable = new AssertExpectedOutputFilesExistInIRODSRunnable(maPSeqDAOBeanService,
-                sample, version, dx);
+                sample, version, incidental);
         es.submit(runnable);
         es.shutdown();
         return null;
@@ -61,12 +61,12 @@ public class AssertExpectedOutputFilesExistInIRODSAction implements Action {
         this.version = version;
     }
 
-    public String getDx() {
-        return dx;
+    public String getIncidental() {
+        return incidental;
     }
 
-    public void setDx(String dx) {
-        this.dx = dx;
+    public void setIncidental(String incidental) {
+        this.incidental = incidental;
     }
 
 }
