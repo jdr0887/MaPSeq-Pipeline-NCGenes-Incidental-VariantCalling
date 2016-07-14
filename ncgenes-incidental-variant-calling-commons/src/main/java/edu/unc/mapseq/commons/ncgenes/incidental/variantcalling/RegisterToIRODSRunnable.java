@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.renci.common.exec.BashExecutor;
@@ -18,13 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
-import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.sequencing.gatk.GATKUnifiedGenotyper;
-import edu.unc.mapseq.module.sequencing.picard.PicardAddOrReplaceReadGroups;
-import edu.unc.mapseq.workflow.core.WorkflowUtil;
 import edu.unc.mapseq.workflow.sequencing.IRODSBean;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
@@ -69,26 +65,6 @@ public class RegisterToIRODSRunnable implements Runnable {
             return;
         }
 
-        Set<FileData> fileDataSet = sample.getFileDatas();
-
-        File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(maPSeqDAOBeanService, fileDataSet,
-                PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, workflow.getId());
-
-        if (bamFile == null) {
-            File ncgenesDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
-            for (File file : ncgenesDirectory.listFiles()) {
-                if (file.getName().endsWith(".fixed-rg.bam")) {
-                    bamFile = file;
-                    break;
-                }
-            }
-        }
-
-        if (bamFile == null) {
-            logger.error("bam file to process was not found");
-            return;
-        }
-
         // assumption: a dash is used as a delimiter between a participantId
         // and the external code
         int idx = sample.getName().lastIndexOf("-");
@@ -112,10 +88,10 @@ public class RegisterToIRODSRunnable implements Runnable {
         commandInput.setWorkDir(tmpDir);
         commandInputList.add(commandInput);
 
-        // set recal out file
-        String gatkTableRecalibrationOut = bamFile.getName().replace(".bam", ".deduped.realign.fixmate.recal.bam");
-
         List<IRODSBean> files2RegisterToIRODS = new LinkedList<IRODSBean>();
+
+        String rootFileName = String.format("%s_%s_L%03d.fixed-rg.deduped.realign.fixmate.recal", sample.getFlowcell().getName(),
+                sample.getBarcode(), sample.getLaneIndex());
 
         List<ImmutablePair<String, String>> attributeList = Arrays.asList(new ImmutablePair<String, String>("ParticipantId", participantId),
                 new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
@@ -124,18 +100,10 @@ public class RegisterToIRODSRunnable implements Runnable {
                 new ImmutablePair<String, String>("MaPSeqSampleId", sample.getId().toString()),
                 new ImmutablePair<String, String>("MaPSeqSystem", workflow.getSystem().getValue()),
                 new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()),
-                new ImmutablePair<String, String>("IncidentalID", incidental),
+                new ImmutablePair<String, String>("IncidentalId", incidental),
                 new ImmutablePair<String, String>("IncidentalVersion", version));
 
-        File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.replace(".bam", ".vcf"));
-        File incidentalVcf = new File(outputDirectory,
-                filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
-
-        if (!incidentalVcf.exists()) {
-            outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
-            incidentalVcf = new File(outputDirectory,
-                    filterVariant1Output.getName().replace(".vcf", String.format(".incidental-%s.v-%s.vcf", incidental, version)));
-        }
+        File incidentalVcf = new File(outputDirectory, String.format("%s.incidental-%s.v-%s.vcf", rootFileName, incidental, version));
 
         List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
         attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", GATKUnifiedGenotyper.class.getSimpleName()));
