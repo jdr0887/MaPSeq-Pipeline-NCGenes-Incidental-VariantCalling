@@ -103,10 +103,6 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
-            String format = "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list";
-
-            File intervalListByIncidentalAndVersionFile = new File(String.format(format, incidental));
-
             Set<FileData> fileDataSet = sample.getFileDatas();
 
             File bamFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(getWorkflowBeanService().getMaPSeqDAOBeanService(),
@@ -151,7 +147,10 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
                         .addArgument(GATKUnifiedGenotyperCLI.INPUTFILE, gatkTableRecalibrationOut.getAbsolutePath())
                         .addArgument(GATKUnifiedGenotyperCLI.NUMTHREADS, "4")
                         .addArgument(GATKUnifiedGenotyperCLI.OUT, gatkUnifiedGenotyperOut.getAbsolutePath())
-                        .addArgument(GATKUnifiedGenotyperCLI.INTERVALS, intervalListByIncidentalAndVersionFile.getAbsolutePath())
+                        .addArgument(GATKUnifiedGenotyperCLI.INTERVALS,
+                                String.format(
+                                        "$NCGENESINCIDENTALVARIANTCALLING_RESOURCES_DIRECTORY/annotation/abeast/NCGenes/Incidental/incidental_%s_11.interval_list",
+                                        incidental))
                         .addArgument(GATKUnifiedGenotyperCLI.OUTPUTMODE, "EMIT_ALL_SITES")
                         .addArgument(GATKUnifiedGenotyperCLI.METRICS, gatkUnifiedGenotyperMetrics.getAbsolutePath())
                         .addArgument(GATKUnifiedGenotyperCLI.DOWNSAMPLETOCOVERAGE, "250")
