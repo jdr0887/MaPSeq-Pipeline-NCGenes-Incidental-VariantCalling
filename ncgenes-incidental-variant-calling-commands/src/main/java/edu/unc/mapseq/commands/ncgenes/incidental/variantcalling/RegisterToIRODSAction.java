@@ -15,6 +15,7 @@ import edu.unc.mapseq.commons.ncgenes.incidental.variantcalling.RegisterToIRODSR
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 
 @Command(scope = "ncgenes-incidental-variantcalling", name = "register-to-irods", description = "Register to iRODS")
 @Service
@@ -34,6 +35,9 @@ public class RegisterToIRODSAction implements Action {
     @Option(name = "--incidental", required = true, multiValued = false)
     private String incidental;
 
+    @Option(name = "--workflowRunAttemptId", required = true, multiValued = false)
+    private Long workflowRunAttemptId;
+
     public RegisterToIRODSAction() {
         super();
     }
@@ -44,13 +48,22 @@ public class RegisterToIRODSAction implements Action {
         ExecutorService es = Executors.newSingleThreadExecutor();
         try {
             Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
-            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, sample, version, incidental);
+            WorkflowRunAttempt attempt = maPSeqDAOBeanService.getWorkflowRunAttemptDAO().findById(workflowRunAttemptId);
+            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, attempt, sample, version, incidental);
             es.submit(runnable);
             es.shutdown();
         } catch (MaPSeqDAOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public Long getWorkflowRunAttemptId() {
+        return workflowRunAttemptId;
+    }
+
+    public void setWorkflowRunAttemptId(Long workflowRunAttemptId) {
+        this.workflowRunAttemptId = workflowRunAttemptId;
     }
 
     public Long getSampleId() {
