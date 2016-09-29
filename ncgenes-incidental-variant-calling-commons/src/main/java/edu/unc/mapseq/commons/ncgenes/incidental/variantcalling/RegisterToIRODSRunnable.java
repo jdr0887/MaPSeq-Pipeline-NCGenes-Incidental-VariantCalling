@@ -112,13 +112,13 @@ public class RegisterToIRODSRunnable implements Runnable {
             attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", GATKUnifiedGenotyper.class.getSimpleName()));
             attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_VCF.toString()));
             File incidentalVcf = new File(outputDirectory, String.format("%s.incidental-%s.v-%s.vcf", rootFileName, incidental, version));
-            Job job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(),
-                    GATKUnifiedGenotyper.class.getSimpleName(), incidentalVcf);
+            Job job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), GATKUnifiedGenotyper.class.getName(),
+                    incidentalVcf);
             if (job != null) {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
             } else {
-                logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                        GATKUnifiedGenotyper.class.getSimpleName()));
+                logger.warn(
+                        String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), GATKUnifiedGenotyper.class.getName()));
             }
             files2RegisterToIRODS.add(new IRODSBean(incidentalVcf, attributeListWithJob));
 
