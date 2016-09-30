@@ -1,4 +1,5 @@
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.RegisterToIRODSAction
+edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.RegisterAllToIRODSAction
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.AssertExpectedOutputFilesExistAction
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.AssertExpectedOutputFilesExistInIRODSAction
 edu.unc.mapseq.commands.ncgenes.incidental.variantcalling.RunWorkflowAction
