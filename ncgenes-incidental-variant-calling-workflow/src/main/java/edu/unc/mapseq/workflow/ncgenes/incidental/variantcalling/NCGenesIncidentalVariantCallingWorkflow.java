@@ -56,7 +56,8 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
         String version = null;
         String incidental = null;
 
-        Set<Sample> sampleSet = getAggregatedSamples();
+        Set<Sample> sampleSet = SequencingWorkflowUtil.getAggregatedSamples(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+                getWorkflowRunAttempt());
         logger.info("sampleSet.size(): {}", sampleSet.size());
 
         String siteName = getWorkflowBeanService().getAttributes().get("siteName");
@@ -176,44 +177,12 @@ public class NCGenesIncidentalVariantCallingWorkflow extends AbstractSequencingW
 
     @Override
     public void postRun() throws WorkflowException {
-
-        Set<Sample> sampleSet = getAggregatedSamples();
-
-        String version = null;
-        String incidental = null;
-
-        WorkflowRunAttempt attempt = getWorkflowRunAttempt();
-        WorkflowRun workflowRun = attempt.getWorkflowRun();
-
-        Set<Attribute> attributeSet = workflowRun.getAttributes();
-        if (attributeSet != null && !attributeSet.isEmpty()) {
-            Iterator<Attribute> attributeIter = attributeSet.iterator();
-            while (attributeIter.hasNext()) {
-                Attribute attribute = attributeIter.next();
-                if ("version".equals(attribute.getName())) {
-                    version = attribute.getValue();
-                }
-                if ("incidental".equals(attribute.getName())) {
-                    incidental = attribute.getValue();
-                }
-            }
-        }
-
-        ExecutorService es = Executors.newSingleThreadExecutor();
-
+        logger.info("ENTERING postRun()");
         try {
-            for (Sample sample : sampleSet) {
-
-                if ("Undetermined".equals(sample.getBarcode())) {
-                    continue;
-                }
-
-                RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(),
-                        getWorkflowRunAttempt(), sample, version, incidental);
-                es.submit(runnable);
-
-            }
-
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+                    getWorkflowRunAttempt());
+            es.submit(runnable);
             es.shutdown();
             es.awaitTermination(1L, TimeUnit.HOURS);
         } catch (InterruptedException e) {

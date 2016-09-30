@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import edu.unc.mapseq.commons.ncgenes.incidental.variantcalling.RegisterToIRODSRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
-import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 
 @Command(scope = "ncgenes-incidental-variantcalling", name = "register-to-irods", description = "Register to iRODS")
@@ -25,15 +24,6 @@ public class RegisterToIRODSAction implements Action {
 
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
-
-    @Option(name = "--sampleId", required = true, multiValued = false)
-    private Long sampleId;
-
-    @Option(name = "--version", required = true, multiValued = false)
-    private String version;
-
-    @Option(name = "--incidental", required = true, multiValued = false)
-    private String incidental;
 
     @Option(name = "--workflowRunAttemptId", required = true, multiValued = false)
     private Long workflowRunAttemptId;
@@ -47,9 +37,8 @@ public class RegisterToIRODSAction implements Action {
         logger.debug("ENTERING execute()");
         ExecutorService es = Executors.newSingleThreadExecutor();
         try {
-            Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
             WorkflowRunAttempt attempt = maPSeqDAOBeanService.getWorkflowRunAttemptDAO().findById(workflowRunAttemptId);
-            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, attempt, sample, version, incidental);
+            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, attempt);
             es.submit(runnable);
             es.shutdown();
         } catch (MaPSeqDAOException e) {
@@ -64,30 +53,6 @@ public class RegisterToIRODSAction implements Action {
 
     public void setWorkflowRunAttemptId(Long workflowRunAttemptId) {
         this.workflowRunAttemptId = workflowRunAttemptId;
-    }
-
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getIncidental() {
-        return incidental;
-    }
-
-    public void setIncidental(String incidental) {
-        this.incidental = incidental;
     }
 
 }
