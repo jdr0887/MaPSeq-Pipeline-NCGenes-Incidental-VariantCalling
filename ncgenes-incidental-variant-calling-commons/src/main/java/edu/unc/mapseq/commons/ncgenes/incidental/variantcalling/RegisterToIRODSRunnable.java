@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.renci.common.exec.BashExecutor;
 import org.renci.common.exec.CommandInput;
@@ -80,16 +81,16 @@ public class RegisterToIRODSRunnable implements Runnable {
                 }
             }
 
+            if (version == null & incidental == null) {
+                logger.warn("Both version and incidental id were null...returning empty irods post-run registration dag");
+                return;
+            }
+
             for (Sample sample : sampleSet) {
                 File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
                 File tmpDir = new File(outputDirectory, "tmp");
                 if (!tmpDir.exists()) {
                     tmpDir.mkdirs();
-                }
-
-                if (version == null & incidental == null) {
-                    logger.warn("Both version and incidental id were null...returning empty irods post-run registration dag");
-                    return;
                 }
 
                 // assumption: a dash is used as a delimiter between a participantId
@@ -140,6 +141,9 @@ public class RegisterToIRODSRunnable implements Runnable {
                         GATKUnifiedGenotyper.class.getName(), incidentalVcf);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
+                    if (StringUtils.isNotEmpty(job.getCommandLine())) {
+                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                    }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
                             GATKUnifiedGenotyper.class.getName()));
