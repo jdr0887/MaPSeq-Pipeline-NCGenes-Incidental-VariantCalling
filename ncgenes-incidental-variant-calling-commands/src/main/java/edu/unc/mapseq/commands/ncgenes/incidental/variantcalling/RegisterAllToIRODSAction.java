@@ -35,24 +35,32 @@ public class RegisterAllToIRODSAction implements Action {
             ExecutorService es = Executors.newFixedThreadPool(2);
             List<Workflow> foundWorkflows = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesIncidentalVariantCalling");
 
-            if (CollectionUtils.isNotEmpty(foundWorkflows)) {
-                for (Workflow workflow : foundWorkflows) {
-                    List<WorkflowRunAttempt> workflowRunAttemptList = maPSeqDAOBeanService.getWorkflowRunAttemptDAO()
-                            .findByWorkflowId(workflow.getId());
+            if (CollectionUtils.isEmpty(foundWorkflows)) {
+                logger.warn("No workflows found...looking for NCGenesBaseline");
+                return null;
+            }
 
-                    if (CollectionUtils.isNotEmpty(workflowRunAttemptList)) {
-                        for (WorkflowRunAttempt workflowRunAttempt : workflowRunAttemptList) {
-                            if (!workflowRunAttempt.getStatus().equals(WorkflowRunAttemptStatusType.DONE)) {
-                                continue;
-                            }
-                            es.submit(new RegisterToIRODSRunnable(maPSeqDAOBeanService, workflowRunAttempt));
-                        }
-                    }
+            for (Workflow workflow : foundWorkflows) {
+                List<WorkflowRunAttempt> workflowRunAttemptList = maPSeqDAOBeanService.getWorkflowRunAttemptDAO()
+                        .findByWorkflowId(workflow.getId());
+
+                if (CollectionUtils.isEmpty(workflowRunAttemptList)) {
+                    logger.warn("No WorkflowRunAttempts found...for NCGenesIncidentalVariantCalling");
+                    return null;
                 }
 
+                for (WorkflowRunAttempt workflowRunAttempt : workflowRunAttemptList) {
+                    if (!workflowRunAttempt.getStatus().equals(WorkflowRunAttemptStatusType.DONE)) {
+                        continue;
+                    }
+                    es.submit(new RegisterToIRODSRunnable(maPSeqDAOBeanService, workflowRunAttempt));
+                }
             }
+
             es.shutdown();
-        } catch (MaPSeqDAOException e) {
+        } catch (
+
+        MaPSeqDAOException e) {
             e.printStackTrace();
         }
         return null;
