@@ -3,13 +3,13 @@
   <parent>
     <groupId>edu.unc.mapseq.pipelines</groupId>
     <artifactId>ncgenes-incidental-variant-calling</artifactId>
-    <version>0.6.36</version>
+    <version>0.6.37-SNAPSHOT</version>
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes Incidental Variant Calling :: Messaging</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines.ncgenes-incidental-variant-calling</groupId>
   <artifactId>ncgenes-incidental-variant-calling-messaging</artifactId>
-  <version>0.6.36</version>
+  <version>0.6.37-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
