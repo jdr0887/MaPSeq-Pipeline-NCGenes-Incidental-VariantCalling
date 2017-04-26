@@ -11,6 +11,9 @@
   <artifactId>ncgenes-incidental-variant-calling-features</artifactId>
   <version>0.6.53-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <properties>
+    <maven.site.plugin.skip>true</maven.site.plugin.skip>    
+  </properties>                  
   <build>
     <plugins>
       <plugin>
